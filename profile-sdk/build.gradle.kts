@@ -1,8 +1,12 @@
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.android.lint)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
+val ktorVersion = "3.5.0"
 
 kotlin {
 
@@ -60,6 +64,20 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
+                // Ktor
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.ktor.serialization.kotlinx.json)
+
+                // Room
+                implementation(libs.room.runtime)
+                implementation(libs.sqlite.bundled)
+
+                // Coroutines & Serialization
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.serialization.json)
+
                 // Add KMP dependencies here
             }
         }
@@ -67,12 +85,13 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
-            }
+                           }
         }
 
         androidMain {
             dependencies {
-                // Add Android-specific dependencies here. Note that this source set depends on
+                implementation(libs.ktor.client.okhttp)
+            // Add Android-specific dependencies here. Note that this source set depends on
                 // commonMain by default and will correctly pull the Android artifacts of any KMP
                 // dependencies declared in commonMain.
             }
@@ -93,8 +112,22 @@ kotlin {
                 // part of KMP’s default source set hierarchy. Note that this source set depends
                 // on common by default and will correctly pull the iOS artifacts of any
                 // KMP dependencies declared in commonMain.
+                implementation(libs.ktor.client.darwin)
             }
         }
     }
 
+
+
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
+dependencies {
+    add("kspAndroid", libs.room.compiler)
+    add("kspIosArm64", libs.room.compiler)
+    add("kspIosX64", libs.room.compiler)
+    add("kspIosSimulatorArm64", libs.room.compiler)
 }
