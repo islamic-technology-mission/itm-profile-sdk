@@ -8,7 +8,7 @@ import com.itm.profile_sdk.local.entity.ScreenTimeEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ScreenTimeDao {
+internal interface ScreenTimeDao {
 
     @Query("SELECT * FROM screen_time WHERE userId = :userId ORDER BY date ASC")
     fun observeScreenTime(userId: String): Flow<List<ScreenTimeEntity>>

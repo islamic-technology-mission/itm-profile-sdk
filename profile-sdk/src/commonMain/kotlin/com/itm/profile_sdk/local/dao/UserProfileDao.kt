@@ -8,7 +8,7 @@ import com.itm.profile_sdk.local.entity.UserProfileEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface UserProfileDao {
+internal interface UserProfileDao {
 
     @Query("SELECT * FROM user_profile WHERE id = :userId")
     fun observeProfile(userId: String): Flow<UserProfileEntity?>

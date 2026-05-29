@@ -19,7 +19,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
-class UserProfileApiServiceImpl(
+internal class UserProfileApiServiceImpl(
     private val client: HttpClient
 ) : UserProfileApiService {
     // POST /profile — upsert

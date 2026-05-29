@@ -16,13 +16,15 @@ import com.itm.profile_sdk.local.entity.UserProfileEntity
     version = 1
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userProfileDao(): UserProfileDao
-    abstract fun screenTimeDao(): ScreenTimeDao
+    internal abstract fun userProfileDao(): UserProfileDao
+    internal abstract fun screenTimeDao(): ScreenTimeDao
 }
 
-// expect declaration in commonMain — actuals must exist in every platform source set
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase
 }
+
+// expect function — each platform implements buildDatabase() differently
+expect fun buildDatabase(context: Any): AppDatabase
 
 internal const val DB_NAME = "app_database.db"

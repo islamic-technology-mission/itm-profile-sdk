@@ -3,7 +3,7 @@ package com.itm.profile_sdk.network
 object ApiConstants {
     const val BASE_URL = "https://sandbox.theislam360.com/"
 
-    object Endpoints {
+    internal object Endpoints {
         // Profile
         fun userProfile(userId: String)      = "/api/v1/users/$userId/profile"
         fun profileViews(userId: String)     = "/api/v1/users/$userId/profile-views"

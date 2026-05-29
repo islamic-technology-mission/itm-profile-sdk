@@ -14,7 +14,8 @@ actual object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-fun buildDatabase(): AppDatabase {
+actual fun buildDatabase(context: Any): AppDatabase {
+    // context is unused on iOS — path resolved via NSDocumentDirectory
     val dbPath = NSFileManager.defaultManager.URLForDirectory(
         directory = NSDocumentDirectory,
         inDomain = NSUserDomainMask,

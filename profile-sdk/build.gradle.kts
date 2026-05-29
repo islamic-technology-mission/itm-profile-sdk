@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
 }
-val ktorVersion = "3.5.0"
 
 kotlin {
 

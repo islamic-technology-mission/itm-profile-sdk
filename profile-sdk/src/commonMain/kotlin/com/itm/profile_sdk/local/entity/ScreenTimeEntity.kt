@@ -6,7 +6,7 @@ import androidx.room.Entity
     tableName = "screen_time",
     primaryKeys = ["userId", "date"]
 )
-data class ScreenTimeEntity(
+internal data class ScreenTimeEntity(
     val userId: String,
     val date: String,
     val minutes: Int? = null

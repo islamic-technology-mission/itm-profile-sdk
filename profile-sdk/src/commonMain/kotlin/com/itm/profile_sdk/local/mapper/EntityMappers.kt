@@ -8,7 +8,7 @@ import com.itm.profile_sdk.models.UserProfile
 
 // ─── UserProfile ──────────────────────────────────────────────────────────────
 
-fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
+internal fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
     id = id ?: "",
     name = name,
     email = email,
@@ -28,7 +28,7 @@ fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
     locationUpdatedAt = location?.updatedAt
 )
 
-fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
+internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
     id = id,
     name = name,
     email = email,
@@ -54,13 +54,13 @@ fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
 
 // ─── ScreenTime ───────────────────────────────────────────────────────────────
 
-fun ScreenTimeEntry.toEntity(userId: String): ScreenTimeEntity = ScreenTimeEntity(
+internal fun ScreenTimeEntry.toEntity(userId: String): ScreenTimeEntity = ScreenTimeEntity(
     userId = userId,
     date = date ?: "",
     minutes = minutes
 )
 
-fun ScreenTimeEntity.toDomain(): ScreenTimeEntry = ScreenTimeEntry(
+internal fun ScreenTimeEntity.toDomain(): ScreenTimeEntry = ScreenTimeEntry(
     date = date,
     minutes = minutes
 )

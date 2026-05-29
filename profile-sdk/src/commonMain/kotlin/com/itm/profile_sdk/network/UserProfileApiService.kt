@@ -8,7 +8,7 @@ import com.itm.profile_sdk.models.UpdateProfileRequest
 import com.itm.profile_sdk.models.UpsertProfileRequest
 import com.itm.profile_sdk.models.UserProfileResponse
 
-interface UserProfileApiService {
+internal interface UserProfileApiService {
 
     // POST /api/v1/users/{userId}/profile
     // First-login profile upsert (idempotent merge)

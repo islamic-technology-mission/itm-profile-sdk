@@ -11,10 +11,13 @@ actual object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     )
 }
 
-fun buildDatabase(context: Context): AppDatabase {
+actual fun buildDatabase(context: Any): AppDatabase {
+    require(context is Context) {
+        "On Android, pass Application context to ISDKClient.initialize()"
+    }
     return Room.databaseBuilder<AppDatabase>(
         context = context.applicationContext,
-        name = context.getDatabasePath(DB_NAME).absolutePath,
+        name = context.getDatabasePath(DB_NAME).absolutePath
     )
         .setDriver(BundledSQLiteDriver())
         .build()
