@@ -48,6 +48,18 @@ internal class TokenManager(
 
     fun hasToken(): Boolean = cachedIdToken != null
 
+    /**
+     * Clears all cached token data.
+     * Called by ISDKClient.initialize() when switching users.
+     */
+    fun clear() {
+        uid              = null
+        internalKey      = null
+        cachedIdToken    = null
+        tokenFetchedAt   = 0L
+        expiresInMillis  = 3600L * 1000L
+    }
+
     // ── Private ───────────────────────────────────────────────────────────────
 
     private suspend fun fetchAndCache(uid: String, internalKey: String): String {
@@ -56,7 +68,7 @@ internal class TokenManager(
             cachedIdToken    = response.data.idToken
             tokenFetchedAt   = getSystemTimeMillis()
             expiresInMillis  = (response.data.expiresIn?.toLongOrNull() ?: 3600L) * 1000L
-            return cachedIdToken?:""
+            return cachedIdToken!!
         }
         error("Token generation failed: ${response.message}")
     }

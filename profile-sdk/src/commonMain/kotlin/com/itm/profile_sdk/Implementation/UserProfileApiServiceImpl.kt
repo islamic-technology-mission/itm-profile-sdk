@@ -24,10 +24,12 @@ internal class UserProfileApiServiceImpl(
     private val client: HttpClient
 ) : UserProfileApiService {
 
+    private fun url(path: String) = "${ApiConstants.BASE_URL}$path"
+
     override suspend fun upsertProfile(
         token: String, userId: String, request: UpsertProfileRequest
     ): UserProfileResponse {
-        return client.post(ApiConstants.Endpoints.userProfile(userId)) {
+        return client.post(url(ApiConstants.Endpoints.userProfile(userId))) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -37,7 +39,7 @@ internal class UserProfileApiServiceImpl(
     override suspend fun updateProfile(
         token: String, userId: String, request: UpdateProfileRequest
     ): UserProfileResponse {
-        return client.patch(ApiConstants.Endpoints.userProfile(userId)) {
+        return client.patch(url(ApiConstants.Endpoints.userProfile(userId))) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -47,7 +49,7 @@ internal class UserProfileApiServiceImpl(
     override suspend fun getProfile(
         token: String, userId: String
     ): UserProfileResponse {
-        return client.get(ApiConstants.Endpoints.userProfile(userId)) {
+        return client.get(url(ApiConstants.Endpoints.userProfile(userId))) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
         }.body()
@@ -56,7 +58,7 @@ internal class UserProfileApiServiceImpl(
     override suspend fun getProfileViews(
         token: String, userId: String, cursor: String?, limit: Int?
     ): ProfileViewsResponse {
-        return client.get(ApiConstants.Endpoints.profileViews(userId)) {
+        return client.get(url(ApiConstants.Endpoints.profileViews(userId))) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
             cursor?.let { parameter("cursor", it) }
@@ -67,7 +69,7 @@ internal class UserProfileApiServiceImpl(
     override suspend fun postScreenTime(
         token: String, userId: String, request: ScreenTimeRequest
     ): ScreenTimeResponse {
-        return client.post(ApiConstants.Endpoints.screenTime(userId)) {
+        return client.post(url(ApiConstants.Endpoints.screenTime(userId))) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -77,7 +79,7 @@ internal class UserProfileApiServiceImpl(
     override suspend fun getScreenTime(
         token: String, userId: String, days: Int?
     ): ScreenTimeResponse {
-        return client.get(ApiConstants.Endpoints.screenTime(userId)) {
+        return client.get(url(ApiConstants.Endpoints.screenTime(userId))) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
             days?.let { parameter("days", it) }
@@ -87,7 +89,7 @@ internal class UserProfileApiServiceImpl(
     override suspend fun getNearbyUsers(
         token: String, lat: Double?, lng: Double?
     ): NearbyUsersResponse {
-        return client.get(ApiConstants.BASE_URL + ApiConstants.Endpoints.NEARBY) {
+        return client.get(url(ApiConstants.Endpoints.NEARBY)) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
             lat?.let { parameter("lat", it) }

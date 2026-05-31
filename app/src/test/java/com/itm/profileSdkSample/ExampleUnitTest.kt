@@ -1,4 +1,4 @@
-package com.example.itmprofilesdksample
+package com.itm.profileSdkSample
 
 import org.junit.Test
 

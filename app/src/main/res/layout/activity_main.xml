@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Islam360 SDK"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A2E"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select a profile to load"
+            android:textSize="14sp"
+            android:textColor="#6C6C80"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Profile Buttons -->
+        <Button
+            android:id="@+id/btnProfile1"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Profile 1"
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp"
+            app:backgroundTint="#4F46E5" />
+
+        <Button
+            android:id="@+id/btnProfile2"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Profile 2"
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp"
+            app:backgroundTint="#4F46E5" />
+
+        <Button
+            android:id="@+id/btnProfile3"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Profile 3"
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp"
+            app:backgroundTint="#4F46E5" />
+
+        <Button
+            android:id="@+id/btnProfile4"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Profile 4"
+            android:textSize="15sp"
+            android:layout_marginBottom="24dp"
+            app:backgroundTint="#4F46E5" />
+
+        <!-- Progress -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Status text -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textColor="#6C6C80"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Profile Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Profile Header -->
+                <TextView
+                    android:id="@+id/tvName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A2E"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tvEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="#6C6C80"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F0F0F0"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Info rows -->
+                <include layout="@layout/item_profile_row"
+                    android:id="@+id/rowPhone" />
+
+                <include layout="@layout/item_profile_row"
+                    android:id="@+id/rowGender" />
+
+                <include layout="@layout/item_profile_row"
+                    android:id="@+id/rowDob" />
+
+                <include layout="@layout/item_profile_row"
+                    android:id="@+id/rowLocation" />
+
+                <include layout="@layout/item_profile_row"
+                    android:id="@+id/rowNearby" />
+
+                <include layout="@layout/item_profile_row"
+                    android:id="@+id/rowJoined" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>

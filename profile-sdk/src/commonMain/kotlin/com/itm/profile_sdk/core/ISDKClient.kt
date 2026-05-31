@@ -28,17 +28,23 @@ object ISDKClient {
      * Android: ISDKClient.initialize(userId = "abc-123", context = applicationContext)
      * iOS:     ISDKClient.initialize(userId: "abc-123")
      */
-    fun initialize(userId: String, context: Any = Unit) {
+    fun initialize(
+        userId: String,
+        context: Any = Unit
+    ) {
         require(userId.isNotBlank()) { "userId must not be blank." }
 
-        val db = buildDatabase(context)
-        val httpClient = HttpClientFactory.create()
-        val apiService = UserProfileApiServiceImpl(httpClient)
-        val tokenManager = TokenManager()
+        // Clear previous user's cached token before switching
+        SDKState.tokenManager?.clear()
 
-        SDKState.userId = userId
+        val tokenManager = TokenManager()
+        val db           = buildDatabase(context)
+        val httpClient   = HttpClientFactory.create()
+        val apiService   = UserProfileApiServiceImpl(httpClient)
+
+        SDKState.userId       = userId
         SDKState.tokenManager = tokenManager
-        SDKState.repository = UserProfileRepositoryImpl(apiService, db)
+        SDKState.repository   = UserProfileRepositoryImpl(apiService, db)
     }
 
     // ── Token ─────────────────────────────────────────────────────────────────
@@ -75,25 +81,31 @@ object ISDKClient {
 
     /**
      * Observe profile — emits cached data immediately, re-emits on API refresh.
+     * Token is auto-renewed internally if expired.
      * @return Cancellable — call .cancel() to stop observing.
      */
     fun observeProfile(
         token: String,
         onEach: (UserProfile) -> Unit,
-        onError: (Throwable) -> Unit = {},
-        onComplete: () -> Unit = {}
+        onError: (Throwable) -> Unit = {}
     ): Cancellable {
-        val job = SDKState.scope.launch {
+        // 1. Collect DB flow — emits cached data instantly if available
+        val collectJob = SDKState.scope.launch {
             try {
                 SDKState.requireRepository()
                     .observeUserProfile(token, SDKState.requireUserId())
                     .collect { onEach(it) }
-                onComplete()
             } catch (e: Exception) {
                 onError(e)
             }
         }
-        return Cancellable { job.cancel() }
+
+        // 2. Trigger refresh using the existing public function
+        refreshProfile(token = token, onResult = { result ->
+            if (result is Result.Error) onError(Throwable(result.message))
+        })
+
+        return Cancellable { collectJob.cancel() }
     }
 
     /** First-login profile upsert — idempotent merge. */

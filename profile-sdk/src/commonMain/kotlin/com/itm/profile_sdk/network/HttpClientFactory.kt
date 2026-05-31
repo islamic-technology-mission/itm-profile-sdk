@@ -1,6 +1,7 @@
 package com.itm.profile_sdk.network
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
@@ -10,18 +11,23 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 internal object HttpClientFactory {
+
     fun create(): HttpClient {
         return HttpClient {
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true
-                    isLenient = true
-                    prettyPrint = false
+                    isLenient         = true
+                    prettyPrint       = false
                 })
             }
             install(Logging) {
                 logger = Logger.DEFAULT
-                level = LogLevel.BODY
+                level  = LogLevel.BODY
+            }
+            // Fix localhost issue — sets base URL for all requests
+            install(DefaultRequest) {
+                url(ApiConstants.BASE_URL)
             }
         }
     }
