@@ -1,6 +1,7 @@
 package com.itm.profile_sdk.core
 
 import com.itm.profile_sdk.Implementation.UserProfileApiServiceImpl
+import com.itm.profile_sdk.auth.TokenManager
 import com.itm.profile_sdk.local.buildDatabase
 import com.itm.profile_sdk.models.NearbyUser
 import com.itm.profile_sdk.models.ProfileViewsData
@@ -22,7 +23,7 @@ object ISDKClient {
      * Must be called once before using any SDK function.
      *
      * @param userId  Authenticated user's UUID
-     * @param context Android: pass Application context. iOS: pass Unit or omit.
+     * @param context Android: Application context. iOS: omit or pass Unit.
      *
      * Android: ISDKClient.initialize(userId = "abc-123", context = applicationContext)
      * iOS:     ISDKClient.initialize(userId: "abc-123")
@@ -33,28 +34,51 @@ object ISDKClient {
         val db = buildDatabase(context)
         val httpClient = HttpClientFactory.create()
         val apiService = UserProfileApiServiceImpl(httpClient)
+        val tokenManager = TokenManager()
 
         SDKState.userId = userId
+        SDKState.tokenManager = tokenManager
         SDKState.repository = UserProfileRepositoryImpl(apiService, db)
     }
 
+    // ── Token ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Generates a Bearer token using the X-Internal-Key.
+     * Intended for sample apps — call once on startup.
+     * Token is cached internally and auto-renewed using refreshToken when expired.
+     * The returned idToken can be passed directly to any SDK function.
+     *
+     * @param internalKey  X-Internal-Key provided by the team
+     * @param onResult     Returns idToken on success
+     */
+    fun generateToken(
+        internalKey: String,
+        onResult: (Result<String>) -> Unit
+    ) {
+        val userId = SDKState.requireUserId()
+        SDKState.scope.launch {
+            try {
+                if (SDKState.tokenManager != null) {
+                    val token = SDKState.tokenManager!!
+                        .generateToken(uid = userId, internalKey = internalKey)
+                    onResult(Result.Success(token))
+                } else {
+                    onResult(Result.Error("Token generation failed"))
+                }
+            } catch (e: Exception) {
+                onResult(Result.Error(e.message ?: "Token generation failed", e))
+            }
+        }
+    }
     // ── Profile ───────────────────────────────────────────────────────────────
 
     /**
-     * Observe profile with callbacks — safe for both Android and iOS.
-     * Emits cached profile immediately, then re-emits on every API refresh.
-     *
+     * Observe profile — emits cached data immediately, re-emits on API refresh.
      * @return Cancellable — call .cancel() to stop observing.
-     *
-     * iOS usage:
-     *   val job = ISDKClient.observeProfile(
-     *       onEach    = { profile -> },
-     *       onError   = { error -> },
-     *       onComplete = { }
-     *   )
-     *   job.cancel() // when done
      */
     fun observeProfile(
+        token: String,
         onEach: (UserProfile) -> Unit,
         onError: (Throwable) -> Unit = {},
         onComplete: () -> Unit = {}
@@ -62,7 +86,7 @@ object ISDKClient {
         val job = SDKState.scope.launch {
             try {
                 SDKState.requireRepository()
-                    .observeUserProfile(SDKState.requireUserId())
+                    .observeUserProfile(token, SDKState.requireUserId())
                     .collect { onEach(it) }
                 onComplete()
             } catch (e: Exception) {
@@ -72,17 +96,15 @@ object ISDKClient {
         return Cancellable { job.cancel() }
     }
 
-    /**
-     * First-login profile upsert — idempotent merge.
-     */
+    /** First-login profile upsert — idempotent merge. */
     fun upsertProfile(
+        token: String,
         request: UpsertProfileRequest,
         onResult: (Result<UserProfile>) -> Unit
     ) {
         SDKState.scope.launch {
             onResult(
-                SDKState.requireRepository()
-                    .upsertProfile(SDKState.requireUserId(), request)
+                SDKState.requireRepository().upsertProfile(token, SDKState.requireUserId(), request)
             )
         }
     }
@@ -92,50 +114,44 @@ object ISDKClient {
      * Subscription and ProfileViews cannot be updated through this SDK.
      */
     fun updateProfile(
+        token: String,
         request: UpdateProfileRequest,
         onResult: (Result<UserProfile>) -> Unit
     ) {
         SDKState.scope.launch {
             onResult(
-                SDKState.requireRepository()
-                    .updateProfile(SDKState.requireUserId(), request)
+                SDKState.requireRepository().updateProfile(token, SDKState.requireUserId(), request)
             )
         }
     }
 
-    /**
-     * Force refresh profile from API — useful for pull-to-refresh.
-     */
-    fun refreshProfile(onResult: (Result<Unit>) -> Unit) {
+    /** Force refresh profile from API — useful for pull-to-refresh. */
+    fun refreshProfile(
+        token: String,
+        onResult: (Result<Unit>) -> Unit
+    ) {
         SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository()
-                    .refreshProfile(SDKState.requireUserId())
-            )
+            onResult(SDKState.requireRepository().refreshProfile(token, SDKState.requireUserId()))
         }
     }
 
     // ── Subscription ──────────────────────────────────────────────────────────
 
-    /**
-     * Always fetched live from API — never cached locally.
-     */
-    fun getSubscription(onResult: (Result<Subscription>) -> Unit) {
+    /** Always fetched live from API — never cached locally. */
+    fun getSubscription(
+        token: String,
+        onResult: (Result<Subscription>) -> Unit
+    ) {
         SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository()
-                    .getSubscription(SDKState.requireUserId())
-            )
+            onResult(SDKState.requireRepository().getSubscription(token, SDKState.requireUserId()))
         }
     }
 
     // ── Profile Views ─────────────────────────────────────────────────────────
 
-    /**
-     * Owner-only paginated list of profile viewers.
-     * Always fetched live from API — never cached locally.
-     */
+    /** Owner-only paginated list of profile viewers. Always live from API. */
     fun getProfileViews(
+        token: String,
         cursor: String? = null,
         limit: Int? = null,
         onResult: (Result<ProfileViewsData>) -> Unit
@@ -143,7 +159,7 @@ object ISDKClient {
         SDKState.scope.launch {
             onResult(
                 SDKState.requireRepository()
-                    .getProfileViews(SDKState.requireUserId(), cursor, limit)
+                    .getProfileViews(token, SDKState.requireUserId(), cursor, limit)
             )
         }
     }
@@ -151,12 +167,11 @@ object ISDKClient {
     // ── Screen Time ───────────────────────────────────────────────────────────
 
     /**
-     * Observe screen-time with callbacks — safe for both Android and iOS.
-     * Emits cached data immediately, then re-emits on every API refresh.
-     *
+     * Observe screen-time — emits cached data immediately, re-emits on API refresh.
      * @return Cancellable — call .cancel() to stop observing.
      */
     fun observeScreenTime(
+        token: String,
         onEach: (List<ScreenTimeEntry>) -> Unit,
         onError: (Throwable) -> Unit = {},
         onComplete: () -> Unit = {}
@@ -164,7 +179,7 @@ object ISDKClient {
         val job = SDKState.scope.launch {
             try {
                 SDKState.requireRepository()
-                    .observeScreenTime(SDKState.requireUserId())
+                    .observeScreenTime(token, SDKState.requireUserId())
                     .collect { onEach(it) }
                 onComplete()
             } catch (e: Exception) {
@@ -174,37 +189,31 @@ object ISDKClient {
         return Cancellable { job.cancel() }
     }
 
-    /**
-     * Append screen-time seconds for a specific date (server increments).
-     */
+    /** Append screen-time seconds for a specific date (server increments). */
     fun postScreenTime(
+        token: String,
         request: ScreenTimeRequest,
         onResult: (Result<Unit>) -> Unit
     ) {
         SDKState.scope.launch {
             onResult(
                 SDKState.requireRepository()
-                    .postScreenTime(SDKState.requireUserId(), request)
+                    .postScreenTime(token, SDKState.requireUserId(), request)
             )
         }
     }
 
     // ── Nearby ────────────────────────────────────────────────────────────────
 
-    /**
-     * Fetch nearby public users.
-     * lat/lng are optional — server falls back to the user's saved location.
-     */
+    /** Nearby public users — lat/lng optional, falls back to saved location. */
     fun getNearbyUsers(
+        token: String,
         lat: Double? = null,
         lng: Double? = null,
         onResult: (Result<List<NearbyUser>>) -> Unit
     ) {
         SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository()
-                    .getNearbyUsers(lat, lng)
-            )
+            onResult(SDKState.requireRepository().getNearbyUsers(token, lat, lng))
         }
     }
 }

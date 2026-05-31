@@ -11,6 +11,7 @@ import com.itm.profile_sdk.network.ApiConstants
 import com.itm.profile_sdk.network.UserProfileApiService
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
@@ -22,76 +23,72 @@ import io.ktor.http.contentType
 internal class UserProfileApiServiceImpl(
     private val client: HttpClient
 ) : UserProfileApiService {
-    // POST /profile — upsert
+
     override suspend fun upsertProfile(
-        userId: String,
-        request: UpsertProfileRequest
+        token: String, userId: String, request: UpsertProfileRequest
     ): UserProfileResponse {
         return client.post(ApiConstants.Endpoints.userProfile(userId)) {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()
     }
 
-    // PATCH /profile — partial update
     override suspend fun updateProfile(
-        userId: String,
-        request: UpdateProfileRequest
+        token: String, userId: String, request: UpdateProfileRequest
     ): UserProfileResponse {
         return client.patch(ApiConstants.Endpoints.userProfile(userId)) {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()
     }
 
-    // GET /profile
-    override suspend fun getProfile(userId: String): UserProfileResponse {
+    override suspend fun getProfile(
+        token: String, userId: String
+    ): UserProfileResponse {
         return client.get(ApiConstants.Endpoints.userProfile(userId)) {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
         }.body()
     }
 
-    // GET /profile-views
     override suspend fun getProfileViews(
-        userId: String,
-        cursor: String?,
-        limit: Int?
+        token: String, userId: String, cursor: String?, limit: Int?
     ): ProfileViewsResponse {
         return client.get(ApiConstants.Endpoints.profileViews(userId)) {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             cursor?.let { parameter("cursor", it) }
-            limit?.let { parameter("limit", it) }
+            limit?.let  { parameter("limit", it) }
         }.body()
     }
 
-    // POST /screen-time
     override suspend fun postScreenTime(
-        userId: String,
-        request: ScreenTimeRequest
+        token: String, userId: String, request: ScreenTimeRequest
     ): ScreenTimeResponse {
         return client.post(ApiConstants.Endpoints.screenTime(userId)) {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()
     }
 
-    // GET /screen-time
     override suspend fun getScreenTime(
-        userId: String,
-        days: Int?
+        token: String, userId: String, days: Int?
     ): ScreenTimeResponse {
         return client.get(ApiConstants.Endpoints.screenTime(userId)) {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             days?.let { parameter("days", it) }
         }.body()
     }
 
-    // GET /nearby
     override suspend fun getNearbyUsers(
-        lat: Double?,
-        lng: Double?
+        token: String, lat: Double?, lng: Double?
     ): NearbyUsersResponse {
         return client.get(ApiConstants.BASE_URL + ApiConstants.Endpoints.NEARBY) {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             lat?.let { parameter("lat", it) }
             lng?.let { parameter("lng", it) }
