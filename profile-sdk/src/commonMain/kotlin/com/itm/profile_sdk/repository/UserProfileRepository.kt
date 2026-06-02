@@ -46,14 +46,15 @@ internal interface UserProfileRepository {
         limit: Int?
     ): Result<ProfileViewsData>
 
-    fun observeScreenTime(token: String, userId: String): Flow<List<ScreenTimeEntry>>
+    fun observeScreenTime(token: String, userId: String, days : Int): Flow<List<ScreenTimeEntry>>
     suspend fun postScreenTime(
         token: String,
         userId: String,
+        days : Int,
         request: ScreenTimeRequest
     ): Result<Unit>
 
-    suspend fun refreshScreenTime(token: String, userId: String): Result<Unit>
+    suspend fun refreshScreenTime(token: String, userId: String, days : Int): Result<Unit>
     suspend fun getNearbyUsers(token: String, lat: Double?, lng: Double?): Result<List<NearbyUser>>
 }
 
@@ -152,29 +153,29 @@ internal class UserProfileRepositoryImpl(
 
     // ── Screen Time ───────────────────────────────────────────────────────────
 
-    override fun observeScreenTime(token: String, userId: String): Flow<List<ScreenTimeEntry>> {
-        externalScope.launch { refreshScreenTime(token, userId) }
+    override fun observeScreenTime(token: String, userId: String, days : Int): Flow<List<ScreenTimeEntry>> {
+        externalScope.launch { refreshScreenTime(token, userId,days) }
         return screenTimeDao
             .observeScreenTime(userId)
             .mapNotNull { entities -> entities.map { it.toDomain() } }
     }
 
     override suspend fun postScreenTime(
-        token: String, userId: String, request: ScreenTimeRequest
+        token: String, userId: String, days : Int, request: ScreenTimeRequest
     ): Result<Unit> {
         return try {
             apiService.postScreenTime(token, userId, request)
-            refreshScreenTime(token, userId)
+            refreshScreenTime(token, userId, days)
         } catch (e: Exception) {
             Result.Error(e.message ?: "Failed to post screen time", e)
         }
     }
 
-    override suspend fun refreshScreenTime(token: String, userId: String): Result<Unit> {
+    override suspend fun refreshScreenTime(token: String, userId: String, days : Int): Result<Unit> {
         return try {
-            val response = apiService.getScreenTime(token, userId)
+            val response = apiService.getScreenTime(token, userId, days)
             if (response.status == "success") {
-                response.data?.let { entries ->
+                response.data?.screenTime?.let { entries ->
                     screenTimeDao.deleteScreenTime(userId)
                     screenTimeDao.insertScreenTime(entries.map { it.toEntity(userId) })
                 }
@@ -193,7 +194,7 @@ internal class UserProfileRepositoryImpl(
         return try {
             val response = apiService.getNearbyUsers(token, lat, lng)
             if (response.status == "success") {
-                Result.Success(response.data ?: emptyList())
+                Result.Success(response.data?.nearbyUsers ?: emptyList())
             } else Result.Error("API error: ${response.status}")
         } catch (e: Exception) {
             Result.Error(e.message ?: "Failed to fetch nearby users", e)

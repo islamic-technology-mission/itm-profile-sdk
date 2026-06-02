@@ -35,7 +35,7 @@ internal interface UserProfileApiService {
         request: ScreenTimeRequest
     ): ScreenTimeResponse
 
-    suspend fun getScreenTime(token: String, userId: String, days: Int? = null): ScreenTimeResponse
+    suspend fun getScreenTime(token: String, userId: String, days: Int): ScreenTimeResponse
     suspend fun getNearbyUsers(
         token: String,
         lat: Double? = null,

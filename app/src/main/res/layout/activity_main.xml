@@ -22,62 +22,70 @@
             android:textColor="#1A1A2E"
             android:layout_marginBottom="4dp" />
 
-        <!-- Subtitle -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Select a profile to load"
             android:textSize="14sp"
             android:textColor="#6C6C80"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="24dp" />
 
         <!-- Profile Buttons -->
-        <Button
-            android:id="@+id/btnProfile1"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="Profile 1"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            app:backgroundTint="#4F46E5" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
 
-        <Button
-            android:id="@+id/btnProfile2"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="Profile 2"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            app:backgroundTint="#4F46E5" />
+            <Button
+                android:id="@+id/btnProfile1"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="P1"
+                android:textSize="13sp"
+                android:layout_marginEnd="8dp"
+                app:backgroundTint="#4F46E5" />
 
-        <Button
-            android:id="@+id/btnProfile3"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="Profile 3"
-            android:textSize="15sp"
-            android:layout_marginBottom="12dp"
-            app:backgroundTint="#4F46E5" />
+            <Button
+                android:id="@+id/btnProfile2"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="P2"
+                android:textSize="13sp"
+                android:layout_marginEnd="8dp"
+                app:backgroundTint="#4F46E5" />
 
-        <Button
-            android:id="@+id/btnProfile4"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="Profile 4"
-            android:textSize="15sp"
-            android:layout_marginBottom="24dp"
-            app:backgroundTint="#4F46E5" />
+            <Button
+                android:id="@+id/btnProfile3"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="P3"
+                android:textSize="13sp"
+                android:layout_marginEnd="8dp"
+                app:backgroundTint="#4F46E5" />
 
-        <!-- Progress -->
+            <Button
+                android:id="@+id/btnProfile4"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="P4"
+                android:textSize="13sp"
+                app:backgroundTint="#4F46E5" />
+
+        </LinearLayout>
+
+        <!-- Progress + Status -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:visibility="gone"
-            android:layout_marginBottom="8dp" />
+            android:visibility="gone" />
 
-        <!-- Status text -->
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
@@ -88,12 +96,13 @@
             android:visibility="gone"
             android:layout_marginBottom="16dp" />
 
-        <!-- Profile Card -->
+        <!-- ── Profile Card ── -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardProfile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
+            android:layout_marginBottom="16dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="#FFFFFF">
@@ -104,7 +113,16 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- Profile Header -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="PROFILE"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#4F46E5"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
                 <TextView
                     android:id="@+id/tvName"
                     android:layout_width="match_parent"
@@ -122,31 +140,168 @@
                     android:textColor="#6C6C80"
                     android:layout_marginBottom="16dp" />
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="#F0F0F0"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="12dp" />
 
-                <!-- Info rows -->
-                <include layout="@layout/item_profile_row"
-                    android:id="@+id/rowPhone" />
+                <include android:id="@+id/rowPhone"    layout="@layout/item_profile_row" />
+                <include android:id="@+id/rowGender"   layout="@layout/item_profile_row" />
+                <include android:id="@+id/rowDob"      layout="@layout/item_profile_row" />
+                <include android:id="@+id/rowLocation" layout="@layout/item_profile_row" />
+                <include android:id="@+id/rowNearby"   layout="@layout/item_profile_row" />
+                <include android:id="@+id/rowJoined"   layout="@layout/item_profile_row" />
 
-                <include layout="@layout/item_profile_row"
-                    android:id="@+id/rowGender" />
+                <!-- Update Profile Button -->
+                <Button
+                    android:id="@+id/btnUpdateProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="Update Profile Name"
+                    android:textSize="13sp"
+                    android:layout_marginTop="12dp"
+                    app:backgroundTint="#4F46E5" />
 
-                <include layout="@layout/item_profile_row"
-                    android:id="@+id/rowDob" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-                <include layout="@layout/item_profile_row"
-                    android:id="@+id/rowLocation" />
+        <!-- ── Screen Time Card ── -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardScreenTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFF">
 
-                <include layout="@layout/item_profile_row"
-                    android:id="@+id/rowNearby" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-                <include layout="@layout/item_profile_row"
-                    android:id="@+id/rowJoined" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="SCREEN TIME"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#4F46E5"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvScreenTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="#1A1A2E"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Add Screen Time Button -->
+                <Button
+                    android:id="@+id/btnAddScreenTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="Add 60s Screen Time (Today)"
+                    android:textSize="13sp"
+                    app:backgroundTint="#059669" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ── Profile Views Card ── -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardProfileViews"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="PROFILE VIEWS"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#4F46E5"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvProfileViews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="#1A1A2E"
+                    android:layout_marginBottom="12dp" />
+
+                <Button
+                    android:id="@+id/btnLoadProfileViews"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="Load Profile Views"
+                    android:textSize="13sp"
+                    app:backgroundTint="#7C3AED" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
+        <!-- ── Nearby Users Card ── -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardNearbyUsers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="NEARBY USERS"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#4F46E5"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvNearbyUsers"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="#1A1A2E"
+                    android:layout_marginBottom="12dp" />
+
+                <Button
+                    android:id="@+id/btnLoadNearbyUsers"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="Load Nearby Users"
+                    android:textSize="13sp"
+                    app:backgroundTint="#0891B2" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

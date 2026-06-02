@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NearbyUsersResponse(
     val status: String? = null,
-    val data: List<NearbyUser>? = null
+    val data: NearbyUsersData? = null
 )

@@ -77,12 +77,12 @@ internal class UserProfileApiServiceImpl(
     }
 
     override suspend fun getScreenTime(
-        token: String, userId: String, days: Int?
+        token: String, userId: String, days: Int
     ): ScreenTimeResponse {
         return client.get(url(ApiConstants.Endpoints.screenTime(userId))) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
-            days?.let { parameter("days", it) }
+            parameter("days", days)
         }.body()
     }
 

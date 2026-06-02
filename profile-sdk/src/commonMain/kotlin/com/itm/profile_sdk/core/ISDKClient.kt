@@ -38,13 +38,13 @@ object ISDKClient {
         SDKState.tokenManager?.clear()
 
         val tokenManager = TokenManager()
-        val db           = buildDatabase(context)
-        val httpClient   = HttpClientFactory.create()
-        val apiService   = UserProfileApiServiceImpl(httpClient)
+        val db = buildDatabase(context)
+        val httpClient = HttpClientFactory.create()
+        val apiService = UserProfileApiServiceImpl(httpClient)
 
-        SDKState.userId       = userId
+        SDKState.userId = userId
         SDKState.tokenManager = tokenManager
-        SDKState.repository   = UserProfileRepositoryImpl(apiService, db)
+        SDKState.repository = UserProfileRepositoryImpl(apiService, db)
     }
 
     // ── Token ─────────────────────────────────────────────────────────────────
@@ -184,6 +184,7 @@ object ISDKClient {
      */
     fun observeScreenTime(
         token: String,
+        days: Int,
         onEach: (List<ScreenTimeEntry>) -> Unit,
         onError: (Throwable) -> Unit = {},
         onComplete: () -> Unit = {}
@@ -191,7 +192,7 @@ object ISDKClient {
         val job = SDKState.scope.launch {
             try {
                 SDKState.requireRepository()
-                    .observeScreenTime(token, SDKState.requireUserId())
+                    .observeScreenTime(token, SDKState.requireUserId(), days)
                     .collect { onEach(it) }
                 onComplete()
             } catch (e: Exception) {
@@ -204,13 +205,14 @@ object ISDKClient {
     /** Append screen-time seconds for a specific date (server increments). */
     fun postScreenTime(
         token: String,
+        days : Int,
         request: ScreenTimeRequest,
         onResult: (Result<Unit>) -> Unit
     ) {
         SDKState.scope.launch {
             onResult(
                 SDKState.requireRepository()
-                    .postScreenTime(token, SDKState.requireUserId(), request)
+                    .postScreenTime(token, SDKState.requireUserId(), days,request)
             )
         }
     }
