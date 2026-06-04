@@ -1,10 +1,15 @@
+group = "com.itm.profile_sdk"
+version = "1.0.0"
+
 plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.android.lint)
+    alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    id("maven-publish")
 }
 
 kotlin {
@@ -25,6 +30,12 @@ kotlin {
         }.configure {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
+        lint {
+            // RoomDatabase.createOpenDelegate is @RestrictTo(LIBRARY_GROUP_PREFIX) — it is called
+            // by Room's KSP-generated AppDatabase_Impl, which is outside the androidx group.
+            // This is a known Room KMP issue; the generated code is correct and safe.
+            disable += "RestrictedApi"
+        }
     }
 
     // For iOS targets, this is also where you should
@@ -34,23 +45,43 @@ kotlin {
     // A step-by-step guide on how to include this library in an XCode
     // project can be found here:
     // https://developer.android.com/kotlin/multiplatform/migrate
-    val xcfName = "profile-sdkKit"
+    var xcfName = "Profile_SDK"
+    val syntheticPodsTbdDir = layout.buildDirectory
+        .dir("cocoapods/synthetic/ios/build/EagerLinkingTBDs")
+        .get()
+        .asFile
+        .absolutePath
 
     iosX64 {
         binaries.framework {
             baseName = xcfName
+            linkerOpts("-F$syntheticPodsTbdDir/Debug-iphonesimulator")
         }
     }
 
     iosArm64 {
         binaries.framework {
             baseName = xcfName
+            linkerOpts("-F$syntheticPodsTbdDir/Debug-iphoneos")
         }
     }
 
     iosSimulatorArm64 {
         binaries.framework {
             baseName = xcfName
+            linkerOpts("-F$syntheticPodsTbdDir/Debug-iphonesimulator")
+        }
+    }
+
+    cocoapods {
+        version = "1.0"
+        summary = "Profile-SDK Kotlin Multiplatform SDK"
+        homepage = "https://theislam360.com"
+        ios.deploymentTarget = "15.0"
+        name = "Profile_SDK"
+        framework {
+            baseName = "Profile_SDK"
+            isStatic = true
         }
     }
 
@@ -111,7 +142,7 @@ kotlin {
                 // part of KMP’s default source set hierarchy. Note that this source set depends
                 // on common by default and will correctly pull the iOS artifacts of any
                 // KMP dependencies declared in commonMain.
-                implementation(libs.ktor.client.darwin)
+                //implementation(libs.ktor.client.darwin)
             }
         }
     }
