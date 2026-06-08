@@ -1,5 +1,7 @@
 package com.itm.profile_sdk.repository
 
+import com.itm.profile_sdk.getCurrentDate
+import com.itm.profile_sdk.isWithinDays
 import com.itm.profile_sdk.local.AppDatabase
 import com.itm.profile_sdk.local.entity.UserProfileEntity
 import com.itm.profile_sdk.local.mapper.toDomain
@@ -7,6 +9,7 @@ import com.itm.profile_sdk.local.mapper.toEntity
 import com.itm.profile_sdk.models.NearbyUser
 import com.itm.profile_sdk.models.ProfileViewsData
 import com.itm.profile_sdk.models.ScreenTimeEntry
+import com.itm.profile_sdk.models.ScreenTimeProgress
 import com.itm.profile_sdk.models.ScreenTimeRequest
 import com.itm.profile_sdk.models.Subscription
 import com.itm.profile_sdk.models.UpdateProfileRequest
@@ -46,7 +49,7 @@ internal interface UserProfileRepository {
         limit: Int?
     ): Result<ProfileViewsData>
 
-    fun observeScreenTime(token: String, userId: String, days : Int): Flow<List<ScreenTimeEntry>>
+    fun observeScreenTime(token: String, userId: String, days : Int): Flow<ScreenTimeProgress>
     suspend fun postScreenTime(
         token: String,
         userId: String,
@@ -64,8 +67,9 @@ internal class UserProfileRepositoryImpl(
     private val externalScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : UserProfileRepository {
 
-    private val profileDao = db.userProfileDao()
-    private val screenTimeDao = db.screenTimeDao()
+    private val profileDao        = db.userProfileDao()
+    private val screenTimeDao     = db.screenTimeDao()
+    private val screenTimeTargetDao = db.screenTimeTargetDao()
 
     // ── Profile ───────────────────────────────────────────────────────────────
 
@@ -153,11 +157,20 @@ internal class UserProfileRepositoryImpl(
 
     // ── Screen Time ───────────────────────────────────────────────────────────
 
-    override fun observeScreenTime(token: String, userId: String, days : Int): Flow<List<ScreenTimeEntry>> {
-        externalScope.launch { refreshScreenTime(token, userId,days) }
+
+    override fun observeScreenTime(
+        token: String,
+        userId: String,
+        days: Int
+    ): Flow<ScreenTimeProgress> {
+        // Combine screen time entries + target into a single progress flow
         return screenTimeDao
             .observeScreenTime(userId)
-            .mapNotNull { entities -> entities.map { it.toDomain() } }
+            .mapNotNull { entities ->
+                val entries        = entities.map { it.toDomain() }
+                val targetMinutes  = screenTimeTargetDao.getTarget(userId)?.dailyTargetMinutes ?: 15
+                calculateProgress(entries, targetMinutes)
+            }
     }
 
     override suspend fun postScreenTime(
@@ -200,6 +213,42 @@ internal class UserProfileRepositoryImpl(
             Result.Error(e.message ?: "Failed to fetch nearby users", e)
         }
     }
+
+    // ── Private Helpers ───────────────────────────────────────────────────────
+
+    private fun calculateProgress(
+        entries: List<ScreenTimeEntry>,
+        targetMinutes: Int
+    ): ScreenTimeProgress {
+        val today   = getCurrentDate()
+        val allDates = entries.mapNotNull { it.date }
+
+        val todayMinutes   = entries.filter { it.date == today }.sumOf { it.minutes ?: 0 }
+        val weeklyMinutes  = entries.filter { isWithinDays(it.date, 7) }.sumOf { it.minutes ?: 0 }
+        val monthlyMinutes = entries.filter { isWithinDays(it.date, 30) }.sumOf { it.minutes ?: 0 }
+
+        val weeklyTarget  = targetMinutes * 7
+        val monthlyTarget = targetMinutes * 30
+
+        return ScreenTimeProgress(
+            targetMinutes = targetMinutes,
+            todayMinutes = todayMinutes,
+            isDailyTargetMet = todayMinutes >= targetMinutes,
+            dailyProgressPercent = (todayMinutes.toFloat() / targetMinutes * 100).coerceAtMost(100f),
+            weeklyMinutes = weeklyMinutes,
+            weeklyTargetMinutes = weeklyTarget,
+            isWeeklyTargetMet = weeklyMinutes >= weeklyTarget,
+            weeklyProgressPercent = (weeklyMinutes.toFloat() / weeklyTarget * 100).coerceAtMost(100f),
+            monthlyMinutes = monthlyMinutes,
+            monthlyTargetMinutes = monthlyTarget,
+            isMonthlyTargetMet = monthlyMinutes >= monthlyTarget,
+            monthlyProgressPercent = (monthlyMinutes.toFloat() / monthlyTarget * 100).coerceAtMost(
+                100f
+            ),
+            entries = entries
+        )
+    }
+
 
     // ── Private Helpers ───────────────────────────────────────────────────────
 

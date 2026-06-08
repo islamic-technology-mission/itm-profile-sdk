@@ -5,21 +5,25 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import com.itm.profile_sdk.local.dao.ScreenTimeDao
+import com.itm.profile_sdk.local.dao.ScreenTimeTargetDao
 import com.itm.profile_sdk.local.dao.UserProfileDao
 import com.itm.profile_sdk.local.entity.ScreenTimeEntity
+import com.itm.profile_sdk.local.entity.ScreenTimeTargetEntity
 import com.itm.profile_sdk.local.entity.UserProfileEntity
 
 @Database(
     entities = [
         UserProfileEntity::class,
-        ScreenTimeEntity::class
+        ScreenTimeEntity::class,
+        ScreenTimeTargetEntity::class
     ],
-    version = 1
+    version = 2
 )
-@ConstructedBy(AppDatabaseConstructor::class)
+
 abstract class AppDatabase : RoomDatabase() {
     internal abstract fun userProfileDao(): UserProfileDao
     internal abstract fun screenTimeDao(): ScreenTimeDao
+    internal abstract fun screenTimeTargetDao(): ScreenTimeTargetDao
 }
 
 @Suppress("NO_ACTUAL_FOR_EXPECT")

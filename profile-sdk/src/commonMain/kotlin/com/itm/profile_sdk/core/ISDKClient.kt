@@ -193,7 +193,7 @@ object ISDKClient {
             try {
                 SDKState.requireRepository()
                     .observeScreenTime(token, SDKState.requireUserId(), days)
-                    .collect { onEach(it) }
+                    .collect { onEach(it.entries) }
                 onComplete()
             } catch (e: Exception) {
                 onError(e)
