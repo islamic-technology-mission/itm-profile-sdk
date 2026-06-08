@@ -1,3 +1,6 @@
+import java.util.Properties
+import kotlin.apply
+
 group = "com.itm.profile_sdk"
 version = "1.0.0"
 
@@ -160,4 +163,31 @@ dependencies {
     add("kspIosArm64", libs.room.compiler)
     add("kspIosX64", libs.room.compiler)
     add("kspIosSimulatorArm64", libs.room.compiler)
+}
+
+
+val props = Properties().apply {
+    val localProps = rootProject.file("local.properties")
+    if (localProps.exists()) {
+        load(localProps.inputStream())
+    }
+}
+
+val githubActor = props.getProperty("github.actor") ?: System.getenv("GITHUB_ACTOR")
+val githubToken = props.getProperty("github.token") ?: System.getenv("GITHUB_TOKEN")
+
+publishing {
+    repositories {
+        mavenLocal()
+        if (!githubActor.isNullOrBlank() && !githubToken.isNullOrBlank()) {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/islamic-technology-mission/islam360_sdk")
+                credentials {
+                    username = githubActor
+                    password = githubToken
+                }
+            }
+        }
+    }
 }

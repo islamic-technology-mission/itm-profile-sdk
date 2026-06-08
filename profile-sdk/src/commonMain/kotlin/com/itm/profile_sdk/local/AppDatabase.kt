@@ -19,7 +19,7 @@ import com.itm.profile_sdk.local.entity.UserProfileEntity
     ],
     version = 2
 )
-
+@ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     internal abstract fun userProfileDao(): UserProfileDao
     internal abstract fun screenTimeDao(): ScreenTimeDao
