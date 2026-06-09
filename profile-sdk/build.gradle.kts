@@ -2,7 +2,7 @@ import java.util.Properties
 import kotlin.apply
 
 group = "com.itm.profile_sdk"
-version = "1.0.0"
+version = "1.0.1"
 
 plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
@@ -182,7 +182,7 @@ publishing {
         if (!githubActor.isNullOrBlank() && !githubToken.isNullOrBlank()) {
             maven {
                 name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/islamic-technology-mission/islam360_sdk")
+                url = uri("https://maven.pkg.github.com/islamic-technology-mission/itm-profile-sdk")
                 credentials {
                     username = githubActor
                     password = githubToken
