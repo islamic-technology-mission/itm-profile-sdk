@@ -15,6 +15,7 @@ import com.itm.profile_sdk.network.HttpClientFactory
 import com.itm.profile_sdk.repository.UserProfileRepositoryImpl
 import com.itm.profile_sdk.util.Cancellable
 import com.itm.profile_sdk.util.Result
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 object ISDKClient {
@@ -72,6 +73,8 @@ object ISDKClient {
                 } else {
                     onResult(Result.Error("Token generation failed"))
                 }
+            } catch (e: CancellationException) {
+                throw e   // never swallow coroutine cancellation
             } catch (e: Exception) {
                 onResult(Result.Error(e.message ?: "Token generation failed", e))
             }
@@ -95,6 +98,8 @@ object ISDKClient {
                 SDKState.requireRepository()
                     .observeUserProfile(token, SDKState.requireUserId())
                     .collect { onEach(it) }
+            } catch (e: CancellationException) {
+                throw e   // never forward cancellation as an error
             } catch (e: Exception) {
                 onError(e)
             }
@@ -195,6 +200,8 @@ object ISDKClient {
                     .observeScreenTime(token, SDKState.requireUserId(), days)
                     .collect { onEach(it.entries) }
                 onComplete()
+            } catch (e: CancellationException) {
+                throw e   // never forward cancellation as an error
             } catch (e: Exception) {
                 onError(e)
             }
