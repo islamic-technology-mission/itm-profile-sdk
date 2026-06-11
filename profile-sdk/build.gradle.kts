@@ -1,8 +1,8 @@
 import java.util.Properties
 import kotlin.apply
 
-group = "com.itm.profile_sdk"
-version = "1.0.2"
+group = "com.itm.profilesdk"
+version = "1.0.0"
 
 plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
