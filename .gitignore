@@ -32,3 +32,13 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Kotlin build cache
+.kotlin/
+
+# iOS CocoaPods
+iosApp/Pods/
+
+# Xcode user state
+**/xcuserdata/
+*.xcuserstate
