@@ -125,7 +125,6 @@ class MainActivity : AppCompatActivity() {
 
         ISDKClient.postScreenTime(
             token = token,
-            7,
             request = ScreenTimeRequest(date = today, seconds = 60)
         ) { result ->
             when (result) {

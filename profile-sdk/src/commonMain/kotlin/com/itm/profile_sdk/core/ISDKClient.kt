@@ -138,7 +138,7 @@ object ISDKClient {
     }
 
     /** Force refresh profile from API — useful for pull-to-refresh. */
-    fun refreshProfile(
+    private fun refreshProfile(
         token: String,
         onResult: (Result<Unit>) -> Unit
     ) {
@@ -205,8 +205,8 @@ object ISDKClient {
     /** Append screen-time seconds for a specific date (server increments). */
     fun postScreenTime(
         token: String,
-        days : Int,
         request: ScreenTimeRequest,
+        days : Int = 7,
         onResult: (Result<Unit>) -> Unit
     ) {
         SDKState.scope.launch {

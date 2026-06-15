@@ -49,15 +49,14 @@ internal interface UserProfileRepository {
         limit: Int?
     ): Result<ProfileViewsData>
 
-    fun observeScreenTime(token: String, userId: String, days : Int): Flow<ScreenTimeProgress>
+    fun observeScreenTime(token: String, userId: String, days: Int): Flow<ScreenTimeProgress>
     suspend fun postScreenTime(
         token: String,
         userId: String,
-        days : Int,
+        days: Int,
         request: ScreenTimeRequest
     ): Result<Unit>
 
-    suspend fun refreshScreenTime(token: String, userId: String, days : Int): Result<Unit>
     suspend fun getNearbyUsers(token: String, lat: Double?, lng: Double?): Result<List<NearbyUser>>
 }
 
@@ -67,8 +66,8 @@ internal class UserProfileRepositoryImpl(
     private val externalScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : UserProfileRepository {
 
-    private val profileDao        = db.userProfileDao()
-    private val screenTimeDao     = db.screenTimeDao()
+    private val profileDao = db.userProfileDao()
+    private val screenTimeDao = db.screenTimeDao()
     private val screenTimeTargetDao = db.screenTimeTargetDao()
 
     // ── Profile ───────────────────────────────────────────────────────────────
@@ -167,14 +166,14 @@ internal class UserProfileRepositoryImpl(
         return screenTimeDao
             .observeScreenTime(userId)
             .mapNotNull { entities ->
-                val entries        = entities.map { it.toDomain() }
-                val targetMinutes  = screenTimeTargetDao.getTarget(userId)?.dailyTargetMinutes ?: 15
+                val entries = entities.map { it.toDomain() }
+                val targetMinutes = screenTimeTargetDao.getTarget(userId)?.dailyTargetMinutes ?: 15
                 calculateProgress(entries, targetMinutes)
             }
     }
 
     override suspend fun postScreenTime(
-        token: String, userId: String, days : Int, request: ScreenTimeRequest
+        token: String, userId: String, days: Int, request: ScreenTimeRequest
     ): Result<Unit> {
         return try {
             apiService.postScreenTime(token, userId, request)
@@ -184,7 +183,7 @@ internal class UserProfileRepositoryImpl(
         }
     }
 
-    override suspend fun refreshScreenTime(token: String, userId: String, days : Int): Result<Unit> {
+    private suspend fun refreshScreenTime(token: String, userId: String, days: Int): Result<Unit> {
         return try {
             val response = apiService.getScreenTime(token, userId, days)
             if (response.status == "success") {
@@ -220,14 +219,14 @@ internal class UserProfileRepositoryImpl(
         entries: List<ScreenTimeEntry>,
         targetMinutes: Int
     ): ScreenTimeProgress {
-        val today   = getCurrentDate()
-        val allDates = entries.mapNotNull { it.date }
+        val today = getCurrentDate()
+        entries.mapNotNull { it.date }
 
-        val todayMinutes   = entries.filter { it.date == today }.sumOf { it.minutes ?: 0 }
-        val weeklyMinutes  = entries.filter { isWithinDays(it.date, 7) }.sumOf { it.minutes ?: 0 }
+        val todayMinutes = entries.filter { it.date == today }.sumOf { it.minutes ?: 0 }
+        val weeklyMinutes = entries.filter { isWithinDays(it.date, 7) }.sumOf { it.minutes ?: 0 }
         val monthlyMinutes = entries.filter { isWithinDays(it.date, 30) }.sumOf { it.minutes ?: 0 }
 
-        val weeklyTarget  = targetMinutes * 7
+        val weeklyTarget = targetMinutes * 7
         val monthlyTarget = targetMinutes * 30
 
         return ScreenTimeProgress(
