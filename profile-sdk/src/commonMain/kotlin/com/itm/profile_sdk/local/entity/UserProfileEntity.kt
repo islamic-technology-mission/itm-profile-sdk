@@ -10,6 +10,7 @@ internal data class UserProfileEntity(
     val name: String? = null,
     val email: String? = null,
     val phone: String? = null,
+    val imageUrl: String? = null,
     val gender: String? = null,
     val dob: String? = null,
     val platform: String? = null,

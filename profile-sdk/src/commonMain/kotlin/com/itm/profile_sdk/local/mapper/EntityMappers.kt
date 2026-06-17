@@ -9,10 +9,11 @@ import com.itm.profile_sdk.models.UserProfile
 // ─── UserProfile ──────────────────────────────────────────────────────────────
 
 internal fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
-    id = id ?: "",
+    id = id,
     name = name,
     email = email,
     phone = phone,
+    imageUrl = imageUrl,
     gender = gender,
     dob = dob,
     platform = platform,
@@ -33,6 +34,7 @@ internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
     name = name,
     email = email,
     phone = phone,
+    imageUrl = imageUrl,
     gender = gender,
     dob = dob,
     platform = platform,

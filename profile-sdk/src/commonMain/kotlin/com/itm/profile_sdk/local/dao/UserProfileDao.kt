@@ -19,10 +19,12 @@ internal interface UserProfileDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProfile(profile: UserProfileEntity)
 
-    @Query("""
+    @Query(
+        """
         UPDATE user_profile SET
             name                = :name,
             phone               = :phone,
+            imageUrl               = :imageUrl,
             gender              = :gender,
             dob                 = :dob,
             visibility          = :visibility,
@@ -32,11 +34,13 @@ internal interface UserProfileDao {
             locationGeohash     = :locationGeohash,
             locationUpdatedAt   = :locationUpdatedAt
         WHERE id = :userId
-    """)
+    """
+    )
     suspend fun updateProfile(
         userId: String,
         name: String?,
         phone: String?,
+        imageUrl: String?,
         gender: String?,
         dob: String?,
         visibility: String?,

@@ -264,6 +264,7 @@ internal class UserProfileRepositoryImpl(
             userId = userId,
             name = request.name,
             phone = request.phone,
+            imageUrl = request.imageUrl,
             gender = request.gender,
             dob = request.dob,
             visibility = request.visibility,

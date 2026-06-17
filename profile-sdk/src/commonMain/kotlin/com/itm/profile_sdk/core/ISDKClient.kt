@@ -108,6 +108,31 @@ object ISDKClient {
         return Cancellable { collectJob.cancel() }
     }
 
+    fun observeProfile(
+        userId : String,
+        token: String,
+        onEach: (UserProfile) -> Unit,
+        onError: (Throwable) -> Unit = {}
+    ): Cancellable {
+        // 1. Collect DB flow — emits cached data instantly if available
+        val collectJob = SDKState.scope.launch {
+            try {
+                SDKState.requireRepository()
+                    .observeUserProfile(token, userId)
+                    .collect { onEach(it) }
+            } catch (e: Exception) {
+                onError(e)
+            }
+        }
+
+        // 2. Trigger refresh using the existing public function
+        refreshProfile(userId = userId, token = token, onResult = { result ->
+            if (result is Result.Error) onError(Throwable(result.message))
+        })
+
+        return Cancellable { collectJob.cancel() }
+    }
+
     /** First-login profile upsert — idempotent merge. */
     fun upsertProfile(
         token: String,
@@ -137,6 +162,21 @@ object ISDKClient {
         }
     }
 
+
+    fun updateProfile(
+        userId : String,
+        token: String,
+        request: UpdateProfileRequest,
+        onResult: (Result<UserProfile>) -> Unit
+    ) {
+        SDKState.scope.launch {
+            onResult(
+                SDKState.requireRepository().updateProfile(token, userId, request)
+            )
+        }
+    }
+
+
     /** Force refresh profile from API — useful for pull-to-refresh. */
     private fun refreshProfile(
         token: String,
@@ -144,6 +184,16 @@ object ISDKClient {
     ) {
         SDKState.scope.launch {
             onResult(SDKState.requireRepository().refreshProfile(token, SDKState.requireUserId()))
+        }
+    }
+
+    private fun refreshProfile(
+        userId : String,
+        token: String,
+        onResult: (Result<Unit>) -> Unit
+    ) {
+        SDKState.scope.launch {
+            onResult(SDKState.requireRepository().refreshProfile(token, userId))
         }
     }
 

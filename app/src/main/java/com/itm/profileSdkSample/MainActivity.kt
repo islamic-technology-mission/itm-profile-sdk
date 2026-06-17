@@ -38,6 +38,8 @@ class MainActivity : AppCompatActivity() {
         Profile(userId = "TbyvkxSKuBSNSRUdwv9uDfhbCN12", label = "Profile 2"),
         Profile(userId = "xPVwfiBkHSX6qBqnufSUssJdDWI2", label = "Profile 3"),
         Profile(userId = "wFpRlxosKPXKzjjDqwXpXVicoLc2", label = "Profile 4"),
+        Profile(userId = "fbYd1XPRCTUPzV4wAgm9iysJq0A2", label = "Profile 5"),
+        Profile(userId = "hM8rLApnpSRVYI1jVOdvnA71wJZ2", label = "Profile 6"),
     )
 
 
@@ -186,11 +188,17 @@ class MainActivity : AppCompatActivity() {
             "${profile.name} (Updated)"
         }
 
+        val newDob = if (profile.dob?.equals("1994-09-04") == true) {
+            profile.dob?.replace(" 1994-09-04", "1994-09-03")
+        } else {
+            "${profile.dob} 1994-09-04"
+        }
+
         showLoading("Updating profile...")
 
         ISDKClient.updateProfile(
             token = token,
-            request = UpdateProfileRequest(name = newName)
+            request = UpdateProfileRequest(name = newName, dob = "19289/292/292")
         ) { result ->
             when (result) {
                 is Result.Success -> showToast("✅ Profile updated!")
