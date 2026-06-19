@@ -1,0 +1,16 @@
+PODS:
+  - Profile_SDK (1.0)
+
+DEPENDENCIES:
+  - Profile_SDK (from `../profile-sdk`)
+
+EXTERNAL SOURCES:
+  Profile_SDK:
+    :path: "../profile-sdk"
+
+SPEC CHECKSUMS:
+  Profile_SDK: feff2c30331254d9579d47cf7a0a2a130d46364d
+
+PODFILE CHECKSUM: eae84e2c1e3036d527664a39a6bf857962e35bc2
+
+COCOAPODS: 1.16.2
