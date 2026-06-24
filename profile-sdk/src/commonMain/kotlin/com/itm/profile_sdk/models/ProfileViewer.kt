@@ -8,5 +8,6 @@ data class ProfileViewer(
     val name: String? = null,
     val imageUrl: String? = null,
     val lastViewedAt: String? = null,
-    val viewCount: Int? = null
+    val viewCount: Int? = null,
+    val country: String? = null
 )

@@ -159,6 +159,7 @@ class MainActivity : AppCompatActivity() {
                             sb.appendLine("${index + 1}. ${viewer.name ?: "Unknown"}")
                             sb.appendLine("   Viewed ${viewer.viewCount ?: 0}x")
                             sb.appendLine("   Last: ${viewer.lastViewedAt ?: "—"}")
+                            sb.appendLine("   Country: ${viewer.country ?: "—"}")
                             if (index < (data.items?.size ?: (0 - 1))) sb.appendLine()
                         }
                     }
