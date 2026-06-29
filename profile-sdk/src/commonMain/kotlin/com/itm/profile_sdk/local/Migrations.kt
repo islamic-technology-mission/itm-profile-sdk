@@ -27,11 +27,11 @@ internal val MIGRATION_2_3 = object : Migration(2, 3) {
 }
 
 /**
- * v3 → v4: Add your schema changes here if bumping to version 4.
- * Example: connection.execSQL("ALTER TABLE `user_profile` ADD COLUMN `newField` TEXT")
+ * v3 → v4: Added city and country columns to user_profile.
  */
-// internal val MIGRATION_3_4 = object : Migration(3, 4) {
-//     override fun migrate(connection: SQLiteConnection) {
-//         TODO("Add SQL for v3→v4 schema changes")
-//     }
-// }
+internal val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE `user_profile` ADD COLUMN `city` TEXT")
+        connection.execSQL("ALTER TABLE `user_profile` ADD COLUMN `country` TEXT")
+    }
+}

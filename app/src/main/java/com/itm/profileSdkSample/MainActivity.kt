@@ -189,7 +189,7 @@ class MainActivity : AppCompatActivity() {
             "${profile.name} (Updated)"
         }
 
-        val newDob = if (profile.dob?.equals("1994-09-04") == true) {
+        if (profile.dob?.equals("1994-09-04") == true) {
             profile.dob?.replace(" 1994-09-04", "1994-09-03")
         } else {
             "${profile.dob} 1994-09-04"
@@ -289,6 +289,8 @@ class MainActivity : AppCompatActivity() {
             setRow(binding.rowDob, "DOB", profile.dob ?: "—")
             setRow(binding.rowNearby, "Nearby", "${profile.nearbyUsers ?: 0} users")
             setRow(binding.rowJoined, "Joined", profile.createdAt ?: "—")
+            setRow(binding.rowCountry, "Country", profile.location?.country ?: "—")
+            setRow(binding.rowCity, "City", profile.location?.city ?: "—")
             setRow(
                 binding.rowLocation, "Location",
                 profile.location?.let { "${it.lat}, ${it.lng}" } ?: "—"

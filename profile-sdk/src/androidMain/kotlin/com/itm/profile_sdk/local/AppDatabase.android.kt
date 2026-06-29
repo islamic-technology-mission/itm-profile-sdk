@@ -13,6 +13,6 @@ actual fun buildDatabase(context: Any): AppDatabase {
         name = context.getDatabasePath(DB_NAME).absolutePath
     )
         .setDriver(BundledSQLiteDriver())
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
         .build()
 }

@@ -19,6 +19,6 @@ internal actual fun buildDatabase(context: Any): AppDatabase {
 
     return Room.databaseBuilder<AppDatabase>(name = dbPath)
         .setDriver(BundledSQLiteDriver())
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
         .build()
 }

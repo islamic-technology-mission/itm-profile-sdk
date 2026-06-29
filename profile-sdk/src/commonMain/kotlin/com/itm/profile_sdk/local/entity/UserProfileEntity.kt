@@ -23,5 +23,7 @@ internal data class UserProfileEntity(
     val locationLat: Double? = null,
     val locationLng: Double? = null,
     val locationGeohash: String? = null,
-    val locationUpdatedAt: String? = null
+    val locationUpdatedAt: String? = null,
+    val locationCity: String? = null,
+    val locationCountry: String? = null
 )

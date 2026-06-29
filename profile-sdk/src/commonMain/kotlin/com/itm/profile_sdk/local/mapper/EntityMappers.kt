@@ -26,7 +26,9 @@ internal fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
     locationLat = location?.lat,
     locationLng = location?.lng,
     locationGeohash = location?.geohash,
-    locationUpdatedAt = location?.updatedAt
+    locationUpdatedAt = location?.updatedAt,
+    locationCity = location?.city,
+    locationCountry = location?.country
 )
 
 internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
@@ -49,7 +51,9 @@ internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
             lat = locationLat,
             lng = locationLng,
             geohash = locationGeohash,
-            updatedAt = locationUpdatedAt
+            updatedAt = locationUpdatedAt,
+            city = locationCity,
+            country = locationCountry
         )
     } else null
 )
