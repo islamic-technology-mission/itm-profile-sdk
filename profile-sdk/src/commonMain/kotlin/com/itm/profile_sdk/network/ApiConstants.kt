@@ -1,7 +1,8 @@
 package com.itm.profile_sdk.network
 
 object ApiConstants {
-    const val BASE_URL = "https://sandbox.theislam360.com/"
+    const val BASE_URL_SANDBOX = "https://sandbox.theislam360.com/"
+    const val BASE_URL_PRODUCTION = "https://api.theislam360.com/"
 
     internal object Endpoints {
         // Profile

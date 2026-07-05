@@ -11,6 +11,7 @@ import com.itm.profile_sdk.models.Subscription
 import com.itm.profile_sdk.models.UpdateProfileRequest
 import com.itm.profile_sdk.models.UpsertProfileRequest
 import com.itm.profile_sdk.models.UserProfile
+import com.itm.profile_sdk.network.ApiConstants
 import com.itm.profile_sdk.network.HttpClientFactory
 import com.itm.profile_sdk.repository.UserProfileRepositoryImpl
 import com.itm.profile_sdk.util.Cancellable
@@ -22,14 +23,16 @@ object ISDKClient {
     /**
      * Must be called once before using any SDK function.
      *
-     * @param userId  Authenticated user's UUID
-     * @param context Android: Application context. iOS: omit or pass Unit.
+     * @param userId      Authenticated user's UUID
+     * @param sandboxMode true → sandbox API base URL, false → production API base URL. Defaults to true.
+     * @param context     Android: Application context. iOS: omit or pass Unit.
      *
-     * Android: ISDKClient.initialize(userId = "abc-123", context = applicationContext)
-     * iOS:     ISDKClient.initialize(userId: "abc-123")
+     * Android: ISDKClient.initialize(userId = "abc-123", sandboxMode = true, context = applicationContext)
+     * iOS:     ISDKClient.initialize(userId: "abc-123", sandboxMode: true)
      */
     fun initialize(
         userId: String,
+        sandboxMode: Boolean = true,
         context: Any = Unit
     ) {
         require(userId.isNotBlank()) { "userId must not be blank." }
@@ -37,10 +40,12 @@ object ISDKClient {
         // Clear previous user's cached token before switching
         SDKState.tokenManager?.clear()
 
+        val baseUrl = if (sandboxMode) ApiConstants.BASE_URL_SANDBOX else ApiConstants.BASE_URL_PRODUCTION
+
         val tokenManager = TokenManager()
         val db = buildDatabase(context)
-        val httpClient = HttpClientFactory.create()
-        val apiService = UserProfileApiServiceImpl(httpClient)
+        val httpClient = HttpClientFactory.create(baseUrl)
+        val apiService = UserProfileApiServiceImpl(httpClient, baseUrl)
 
         SDKState.userId = userId
         SDKState.tokenManager = tokenManager

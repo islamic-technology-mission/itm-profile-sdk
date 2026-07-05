@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         // 1. Re-initialize SDK with selected userId
         ISDKClient.initialize(
             userId = profile.userId,
+            sandboxMode = true,
             context = applicationContext
         )
 

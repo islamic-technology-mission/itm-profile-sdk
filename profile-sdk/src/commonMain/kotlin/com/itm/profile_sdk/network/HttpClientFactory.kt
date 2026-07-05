@@ -17,7 +17,7 @@ private val errorJson = Json { ignoreUnknownKeys = true; isLenient = true }
 
 internal object HttpClientFactory {
 
-    fun create(): HttpClient {
+    fun create(baseUrl: String): HttpClient {
         return HttpClient {
             expectSuccess = true
             install(ContentNegotiation) {
@@ -32,7 +32,7 @@ internal object HttpClientFactory {
                 level  = LogLevel.BODY
             }
             install(DefaultRequest) {
-                url(ApiConstants.BASE_URL)
+                url(baseUrl)
             }
             // Parse API error bodies so callers get the real message instead of null.
             install(HttpCallValidator) {
