@@ -190,7 +190,7 @@ object ISDKClient {
      * portions are also saved to the local DB, so a subsequent observeProfile() emission
      * will reflect this fresh data.
      */
-    fun getProfileCompleteData(
+    fun getCompleteProfileData(
         token: String,
         onResult: (Result<UserProfileData>) -> Unit
     ) {
@@ -199,7 +199,7 @@ object ISDKClient {
         }
     }
 
-    fun getProfileCompleteData(
+    fun getCompleteProfileData(
         userId: String,
         token: String,
         onResult: (Result<UserProfileData>) -> Unit
