@@ -41,7 +41,8 @@ object ISDKClient {
         // Clear previous user's cached token before switching
         SDKState.tokenManager?.clear()
 
-        val baseUrl = if (sandboxMode) ApiConstants.BASE_URL_SANDBOX else ApiConstants.BASE_URL_PRODUCTION
+        val baseUrl =
+            if (sandboxMode) ApiConstants.BASE_URL_SANDBOX else ApiConstants.BASE_URL_PRODUCTION
 
         val tokenManager = TokenManager()
         val db = buildDatabase(context)
@@ -115,7 +116,7 @@ object ISDKClient {
     }
 
     fun observeProfile(
-        userId : String,
+        userId: String,
         token: String,
         onEach: (UserProfile) -> Unit,
         onError: (Throwable) -> Unit = {}
@@ -170,7 +171,7 @@ object ISDKClient {
 
 
     fun updateProfile(
-        userId : String,
+        userId: String,
         token: String,
         request: UpdateProfileRequest,
         onResult: (Result<UserProfile>) -> Unit
@@ -219,7 +220,7 @@ object ISDKClient {
     }
 
     private fun refreshProfile(
-        userId : String,
+        userId: String,
         token: String,
         onResult: (Result<Unit>) -> Unit
     ) {
@@ -287,13 +288,13 @@ object ISDKClient {
     fun postScreenTime(
         token: String,
         request: ScreenTimeRequest,
-        days : Int = 7,
+        days: Int = 7,
         onResult: (Result<Unit>) -> Unit
     ) {
         SDKState.scope.launch {
             onResult(
                 SDKState.requireRepository()
-                    .postScreenTime(token, SDKState.requireUserId(), days,request)
+                    .postScreenTime(token, SDKState.requireUserId(), days, request)
             )
         }
     }
