@@ -11,6 +11,7 @@ import com.itm.profile_sdk.models.Subscription
 import com.itm.profile_sdk.models.UpdateProfileRequest
 import com.itm.profile_sdk.models.UpsertProfileRequest
 import com.itm.profile_sdk.models.UserProfile
+import com.itm.profile_sdk.models.UserProfileData
 import com.itm.profile_sdk.network.ApiConstants
 import com.itm.profile_sdk.network.HttpClientFactory
 import com.itm.profile_sdk.repository.UserProfileRepositoryImpl
@@ -181,6 +182,31 @@ object ISDKClient {
         }
     }
 
+
+    /**
+     * Full profile snapshot (profile + subscription + screenTimeWeek + profileViews).
+     * Subscription and profileViews are always live from API. The profile and screenTimeWeek
+     * portions are also saved to the local DB, so a subsequent observeProfile() emission
+     * will reflect this fresh data.
+     */
+    fun getProfileCompleteData(
+        token: String,
+        onResult: (Result<UserProfileData>) -> Unit
+    ) {
+        SDKState.scope.launch {
+            onResult(SDKState.requireRepository().getProfileData(token, SDKState.requireUserId()))
+        }
+    }
+
+    fun getProfileCompleteData(
+        userId: String,
+        token: String,
+        onResult: (Result<UserProfileData>) -> Unit
+    ) {
+        SDKState.scope.launch {
+            onResult(SDKState.requireRepository().getProfileData(token, userId))
+        }
+    }
 
     /** Force refresh profile from API — useful for pull-to-refresh. */
     private fun refreshProfile(

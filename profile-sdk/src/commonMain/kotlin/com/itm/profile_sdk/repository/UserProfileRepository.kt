@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 
 internal interface UserProfileRepository {
     fun observeUserProfile(token: String, userId: String): Flow<UserProfile>
+    suspend fun getProfileData(token: String, userId: String): Result<UserProfileData>
     suspend fun upsertProfile(
         token: String,
         userId: String,
@@ -120,6 +121,25 @@ internal class UserProfileRepositoryImpl(
             } else Result.Error("API error: ${response.status}")
         } catch (e: Exception) {
             Result.Error(e.message ?: "Refresh failed", e)
+        }
+    }
+
+    /**
+     * Full profile snapshot (profile + subscription + screenTimeWeek + profileViews).
+     * Subscription and profileViews are always live (never cached), but the profile and
+     * screenTimeWeek portions are written to the local DB — so observeUserProfile picks up
+     * the fresh data on its next emission.
+     */
+    override suspend fun getProfileData(token: String, userId: String): Result<UserProfileData> {
+        return try {
+            val response = apiService.getProfile(token, userId)
+            if (response.status == "success") {
+                val data = response.data ?: return Result.Error("Profile data unavailable")
+                saveProfileToDb(userId, data)
+                Result.Success(data)
+            } else Result.Error("API error: ${response.status}")
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Failed to fetch profile data", e)
         }
     }
 
