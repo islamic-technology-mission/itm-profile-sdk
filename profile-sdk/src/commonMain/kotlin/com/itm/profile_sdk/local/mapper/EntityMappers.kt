@@ -46,7 +46,11 @@ internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
     whatsappVerified = whatsappVerified,
     createdAt = createdAt,
     nearbyUsers = nearbyUsers,
-    location = if (locationLat != null || locationLng != null) {
+    location = if (
+        locationLat != null || locationLng != null ||
+        locationGeohash != null || locationUpdatedAt != null ||
+        locationCity != null || locationCountry != null
+    ) {
         UserLocation(
             lat = locationLat,
             lng = locationLng,
