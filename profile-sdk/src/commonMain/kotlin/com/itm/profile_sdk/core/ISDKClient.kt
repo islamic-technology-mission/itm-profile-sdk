@@ -22,7 +22,45 @@ import kotlinx.coroutines.launch
 object ISDKClient {
 
     /**
-     * Must be called once before using any SDK function.
+     * One-time app-level setup — builds the DB, HTTP client, and repository singleton.
+     * Call once, e.g. in Application.onCreate (Android) or app startup (iOS).
+     * Safe to call again — a no-op if already configured. To rebuild from scratch
+     * (e.g. sandboxMode changed, logout), call [reset] first.
+     *
+     * Once configured, every SDK function that takes an explicit `userId` param
+     * (e.g. observeScreenTime(userId, ...), getCompleteProfileData(userId, ...)) works
+     * immediately — no per-user re-initialization needed.
+     *
+     * @param sandboxMode true → sandbox API base URL, false → production API base URL. Defaults to true.
+     * @param context     Android: Application context. iOS: omit or pass Unit.
+     *
+     * Android: ISDKClient.configure(sandboxMode = true, context = applicationContext)
+     * iOS:     ISDKClient.configure(sandboxMode: true)
+     */
+    fun configure(
+        sandboxMode: Boolean = true,
+        context: Any = Unit
+    ) {
+        if (SDKState.repository != null) return
+
+        val baseUrl =
+            if (sandboxMode) ApiConstants.BASE_URL_SANDBOX else ApiConstants.BASE_URL_PRODUCTION
+
+        val db = buildDatabase(context)
+        val httpClient = HttpClientFactory.create(baseUrl)
+        val apiService = UserProfileApiServiceImpl(httpClient, baseUrl)
+
+        SDKState.repository = UserProfileRepositoryImpl(apiService, db)
+        if (SDKState.tokenManager == null) SDKState.tokenManager = TokenManager()
+    }
+
+    /**
+     * Sets the "current" user for the convenience overloads that don't take an explicit
+     * userId (e.g. observeProfile(token, ...), generateToken(...)). Only needed if you use
+     * those; the explicit-userId overloads work off [configure] alone.
+     *
+     * Also runs [configure] internally if it hasn't been called yet, so this remains a
+     * drop-in replacement for the old single-step initialize() call.
      *
      * @param userId      Authenticated user's UUID
      * @param sandboxMode true → sandbox API base URL, false → production API base URL. Defaults to true.
@@ -38,20 +76,52 @@ object ISDKClient {
     ) {
         require(userId.isNotBlank()) { "userId must not be blank." }
 
-        // Clear previous user's cached token before switching
-        SDKState.tokenManager?.clear()
+        configure(sandboxMode, context)
 
-        val baseUrl =
-            if (sandboxMode) ApiConstants.BASE_URL_SANDBOX else ApiConstants.BASE_URL_PRODUCTION
-
-        val tokenManager = TokenManager()
-        val db = buildDatabase(context)
-        val httpClient = HttpClientFactory.create(baseUrl)
-        val apiService = UserProfileApiServiceImpl(httpClient, baseUrl)
+        // Clear cached token only when actually switching to a different user
+        if (SDKState.userId != null && SDKState.userId != userId) {
+            SDKState.tokenManager?.clear()
+        }
 
         SDKState.userId = userId
-        SDKState.tokenManager = tokenManager
-        SDKState.repository = UserProfileRepositoryImpl(apiService, db)
+    }
+
+    /**
+     * Fully tears down the SDK singleton — closes the DB connection, drops the repository,
+     * HTTP client, token manager, and current user.
+     *
+     * Call this on full logout / account switch when you want a completely clean slate.
+     * After calling [reset], the SDK is uninitialized again: the next [configure] or
+     * [initialize] call rebuilds everything from scratch.
+     *
+     * Not needed for switching between users while staying logged in — use
+     * [initialize] with a new userId, or the explicit-userId function overloads, instead.
+     */
+    fun reset() {
+        SDKState.repository?.close()
+        SDKState.repository = null
+        SDKState.tokenManager?.clear()
+        SDKState.tokenManager = null
+        SDKState.userId = null
+    }
+
+    /**
+     * Runs [block] on the SDK scope and always delivers a [Result] to [onResult] —
+     * including "not configured" / "no current user" failures, which are surfaced as
+     * [Result.Error] instead of crashing via an uncaught exception.
+     */
+    private fun <T> launchResult(
+        onResult: (Result<T>) -> Unit,
+        block: suspend () -> Result<T>
+    ) {
+        SDKState.scope.launch {
+            val result = try {
+                block()
+            } catch (e: Exception) {
+                Result.Error(e.message ?: "SDK call failed", e)
+            }
+            onResult(result)
+        }
     }
 
     // ── Token ─────────────────────────────────────────────────────────────────
@@ -69,19 +139,11 @@ object ISDKClient {
         internalKey: String,
         onResult: (Result<String>) -> Unit
     ) {
-        val userId = SDKState.requireUserId()
-        SDKState.scope.launch {
-            try {
-                if (SDKState.tokenManager != null) {
-                    val token = SDKState.tokenManager!!
-                        .generateToken(uid = userId, internalKey = internalKey)
-                    onResult(Result.Success(token))
-                } else {
-                    onResult(Result.Error("Token generation failed"))
-                }
-            } catch (e: Exception) {
-                onResult(Result.Error(e.message ?: "Token generation failed", e))
-            }
+        launchResult(onResult) {
+            val userId = SDKState.requireUserId()
+            val tokenManager = SDKState.tokenManager
+                ?: return@launchResult Result.Error("Token generation failed")
+            Result.Success(tokenManager.generateToken(uid = userId, internalKey = internalKey))
         }
     }
     // ── Profile ───────────────────────────────────────────────────────────────
@@ -146,10 +208,8 @@ object ISDKClient {
         request: UpsertProfileRequest,
         onResult: (Result<UserProfile>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository().upsertProfile(token, SDKState.requireUserId(), request)
-            )
+        launchResult(onResult) {
+            SDKState.requireRepository().upsertProfile(token, SDKState.requireUserId(), request)
         }
     }
 
@@ -162,10 +222,8 @@ object ISDKClient {
         request: UpdateProfileRequest,
         onResult: (Result<UserProfile>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository().updateProfile(token, SDKState.requireUserId(), request)
-            )
+        launchResult(onResult) {
+            SDKState.requireRepository().updateProfile(token, SDKState.requireUserId(), request)
         }
     }
 
@@ -176,10 +234,8 @@ object ISDKClient {
         request: UpdateProfileRequest,
         onResult: (Result<UserProfile>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository().updateProfile(token, userId, request)
-            )
+        launchResult(onResult) {
+            SDKState.requireRepository().updateProfile(token, userId, request)
         }
     }
 
@@ -194,8 +250,8 @@ object ISDKClient {
         token: String,
         onResult: (Result<UserProfileData>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(SDKState.requireRepository().getProfileData(token, SDKState.requireUserId()))
+        launchResult(onResult) {
+            SDKState.requireRepository().getProfileData(token, SDKState.requireUserId())
         }
     }
 
@@ -204,8 +260,8 @@ object ISDKClient {
         token: String,
         onResult: (Result<UserProfileData>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(SDKState.requireRepository().getProfileData(token, userId))
+        launchResult(onResult) {
+            SDKState.requireRepository().getProfileData(token, userId)
         }
     }
 
@@ -214,8 +270,8 @@ object ISDKClient {
         token: String,
         onResult: (Result<Unit>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(SDKState.requireRepository().refreshProfile(token, SDKState.requireUserId()))
+        launchResult(onResult) {
+            SDKState.requireRepository().refreshProfile(token, SDKState.requireUserId())
         }
     }
 
@@ -224,8 +280,8 @@ object ISDKClient {
         token: String,
         onResult: (Result<Unit>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(SDKState.requireRepository().refreshProfile(token, userId))
+        launchResult(onResult) {
+            SDKState.requireRepository().refreshProfile(token, userId)
         }
     }
 
@@ -236,8 +292,8 @@ object ISDKClient {
         token: String,
         onResult: (Result<Subscription>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(SDKState.requireRepository().getSubscription(token, SDKState.requireUserId()))
+        launchResult(onResult) {
+            SDKState.requireRepository().getSubscription(token, SDKState.requireUserId())
         }
     }
 
@@ -250,11 +306,9 @@ object ISDKClient {
         limit: Int? = null,
         onResult: (Result<ProfileViewsData>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository()
-                    .getProfileViews(token, SDKState.requireUserId(), cursor, limit)
-            )
+        launchResult(onResult) {
+            SDKState.requireRepository()
+                .getProfileViews(token, SDKState.requireUserId(), cursor, limit)
         }
     }
 
@@ -284,6 +338,32 @@ object ISDKClient {
         return Cancellable { job.cancel() }
     }
 
+    /**
+     * Observe screen-time for a specific user — emits cached data immediately, re-emits on API refresh.
+     * @return Cancellable — call .cancel() to stop observing.
+     */
+    fun observeScreenTime(
+        userId: String,
+        token: String,
+        days: Int,
+        onEach: (List<ScreenTimeEntry>) -> Unit,
+        onError: (Throwable) -> Unit = {},
+        onComplete: () -> Unit = {}
+    ): Cancellable {
+        val job = SDKState.scope.launch {
+            try {
+                SDKState.requireRepository()
+                    .observeScreenTime(token, userId, days)
+                    .collect { onEach(it.entries) }
+                onComplete()
+            } catch (e: Exception) {
+                onError(e)
+            }
+        }
+        return Cancellable { job.cancel() }
+    }
+
+
     /** Append screen-time seconds for a specific date (server increments). */
     fun postScreenTime(
         token: String,
@@ -291,11 +371,9 @@ object ISDKClient {
         days: Int = 7,
         onResult: (Result<Unit>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(
-                SDKState.requireRepository()
-                    .postScreenTime(token, SDKState.requireUserId(), days, request)
-            )
+        launchResult(onResult) {
+            SDKState.requireRepository()
+                .postScreenTime(token, SDKState.requireUserId(), days, request)
         }
     }
 
@@ -308,8 +386,8 @@ object ISDKClient {
         lng: Double? = null,
         onResult: (Result<List<NearbyUser>>) -> Unit
     ) {
-        SDKState.scope.launch {
-            onResult(SDKState.requireRepository().getNearbyUsers(token, lat, lng))
+        launchResult(onResult) {
+            SDKState.requireRepository().getNearbyUsers(token, lat, lng)
         }
     }
 }

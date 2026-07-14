@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        ISDKClient.configure(true, applicationContext)
         setupButtons()
 
 
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         activeObserver?.cancel()
         currentToken = null
         currentProfile = null
+        ISDKClient.reset()
 
         showLoading("Generating token for ${profile.label}...")
 

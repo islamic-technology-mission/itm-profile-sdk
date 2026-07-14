@@ -2,7 +2,7 @@ import java.util.Properties
 import kotlin.apply
 
 group = "com.itm.profilesdk"
-version = "1.0.6"
+version = "1.0.7"
 
 plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)

@@ -6,7 +6,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 
 actual fun buildDatabase(context: Any): AppDatabase {
     require(context is Context) {
-        "On Android, pass Application context to ISDKClient.initialize()"
+        "On Android, pass Application context to ISDKClient.configure()"
     }
     return Room.databaseBuilder<AppDatabase>(
         context = context.applicationContext,

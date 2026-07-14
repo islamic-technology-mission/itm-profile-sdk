@@ -59,6 +59,9 @@ internal interface UserProfileRepository {
     ): Result<Unit>
 
     suspend fun getNearbyUsers(token: String, lat: Double?, lng: Double?): Result<List<NearbyUser>>
+
+    /** Releases the underlying DB connection. Called by ISDKClient.reset(). */
+    fun close()
 }
 
 internal class UserProfileRepositoryImpl(
@@ -231,6 +234,12 @@ internal class UserProfileRepositoryImpl(
         } catch (e: Exception) {
             Result.Error(e.message ?: "Failed to fetch nearby users", e)
         }
+    }
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    override fun close() {
+        db.close()
     }
 
     // ── Private Helpers ───────────────────────────────────────────────────────

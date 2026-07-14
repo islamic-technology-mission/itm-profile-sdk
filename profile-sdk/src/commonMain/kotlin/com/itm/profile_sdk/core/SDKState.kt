@@ -13,8 +13,8 @@ internal object SDKState {
     val scope = CoroutineScope(Dispatchers.IO)  // ← add this
 
     fun requireUserId(): String =
-        userId ?: error("ISDKClient not initialized. Call ISDKClient.initialize() first.")
+        userId ?: error("No current user set. Call ISDKClient.initialize(userId, ...) first, or use the overload that takes an explicit userId.")
 
     fun requireRepository(): UserProfileRepository =
-        repository ?: error("ISDKClient not initialized. Call ISDKClient.initialize() first.")
+        repository ?: error("ISDKClient not configured. Call ISDKClient.configure(...) once at app startup.")
 }
