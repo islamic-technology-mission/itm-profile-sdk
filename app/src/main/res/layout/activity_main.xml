@@ -178,6 +178,12 @@
                     android:id="@+id/rowCity"
                     layout="@layout/item_profile_row" />
 
+
+                <include
+                    android:id="@+id/rowBlocked"
+                    layout="@layout/item_profile_row" />
+
+
                 <!-- Update Profile Button -->
                 <Button
                     android:id="@+id/btnUpdateProfile"

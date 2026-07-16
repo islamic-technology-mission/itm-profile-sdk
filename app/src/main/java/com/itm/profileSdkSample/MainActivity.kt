@@ -34,12 +34,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private val profiles = listOf(
-        Profile(userId = "mMCb2xH89eUWqnJPOkV0WfGf2XO2", label = "Profile 1"),
-        Profile(userId = "TbyvkxSKuBSNSRUdwv9uDfhbCN12", label = "Profile 2"),
-        Profile(userId = "xPVwfiBkHSX6qBqnufSUssJdDWI2", label = "Profile 3"),
-        Profile(userId = "wFpRlxosKPXKzjjDqwXpXVicoLc2", label = "Profile 4"),
-        Profile(userId = "fbYd1XPRCTUPzV4wAgm9iysJq0A2", label = "Profile 5"),
-        Profile(userId = "hM8rLApnpSRVYI1jVOdvnA71wJZ2", label = "Profile 6"),
+        Profile(userId = "JEElOJEWEQerwvGCW1SqXdtEfP13", label = "Profile 1")
     )
 
 
@@ -294,6 +289,7 @@ class MainActivity : AppCompatActivity() {
             setRow(binding.rowJoined, "Joined", profile.createdAt ?: "—")
             setRow(binding.rowCountry, "Country", profile.location?.country ?: "—")
             setRow(binding.rowCity, "City", profile.location?.city ?: "—")
+            setRow(binding.rowBlocked, "City", profile.protectedFieldsUnlockAt ?: "—")
             setRow(
                 binding.rowLocation, "Location",
                 profile.location?.let { "${it.lat}, ${it.lng}" } ?: "—"

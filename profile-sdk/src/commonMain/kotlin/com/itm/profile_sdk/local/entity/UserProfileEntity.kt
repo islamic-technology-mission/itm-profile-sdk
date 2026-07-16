@@ -19,6 +19,7 @@ internal data class UserProfileEntity(
     val migrated: Boolean? = null,
     val whatsappVerified: Boolean? = null,
     val createdAt: String? = null,
+    val protectedFieldsUnlockAt: String? = null,
     val nearbyUsers: Int? = null,
     val locationLat: Double? = null,
     val locationLng: Double? = null,

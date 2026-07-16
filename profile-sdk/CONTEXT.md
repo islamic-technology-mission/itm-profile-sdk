@@ -36,8 +36,8 @@ profile-sdk/
 │   │   ├── repository/
 │   │   │   └── UserProfileRepository.kt ← business logic, caching, optimistic updates
 │   │   ├── local/
-│   │   │   ├── AppDatabase.kt         ← Room DB v4, 3 entities
-│   │   │   ├── Migrations.kt          ← MIGRATION_1_2, _2_3, _3_4
+│   │   │   ├── AppDatabase.kt         ← Room DB v5, 3 entities
+│   │   │   ├── Migrations.kt          ← MIGRATION_1_2, _2_3, _3_4, _4_5
 │   │   │   ├── dao/
 │   │   │   │   ├── UserProfileDao.kt
 │   │   │   │   ├── ScreenTimeDao.kt
@@ -99,7 +99,7 @@ profile-sdk/
 - **updateProfile** is optimistic: writes to DB immediately, rolls back on API failure.
 - **observeProfile / observeScreenTime** return a `Cancellable` — must call `.cancel()` to stop.
 - **ScreenTimeProgress** is computed locally from cached entries: daily/weekly/monthly totals vs target (default 15 min/day).
-- Room DB name: `app_database.db`, current schema version: **4**.
+- Room DB name: `app_database.db`, current schema version: **5**.
 - iOS DB path: `NSDocumentDirectory/app_database.db`.
 - Android DB path: `context.getDatabasePath("app_database.db")`.
 

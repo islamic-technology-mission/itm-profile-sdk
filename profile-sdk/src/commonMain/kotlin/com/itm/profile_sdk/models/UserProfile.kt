@@ -19,6 +19,7 @@ data class UserProfile(
     val name: String? = null,
     val visibility: String? = null,
     val updatedAt: String? = null,
+    val protectedFieldsUnlockAt: String? = null,
     val nearbyUsers: Int? = 0
 ) {
     fun isPublic(): Boolean  = visibility.equals("public", ignoreCase = true)

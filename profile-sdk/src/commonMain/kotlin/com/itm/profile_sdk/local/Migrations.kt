@@ -35,3 +35,12 @@ internal val MIGRATION_3_4 = object : Migration(3, 4) {
         connection.execSQL("ALTER TABLE `user_profile` ADD COLUMN `country` TEXT")
     }
 }
+
+/**
+ * v4 → v5: Added protectedFieldsUnlockAt column to user_profile.
+ */
+internal val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE `user_profile` ADD COLUMN `protectedFieldsUnlockAt` TEXT")
+    }
+}

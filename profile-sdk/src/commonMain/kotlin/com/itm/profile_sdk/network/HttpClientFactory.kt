@@ -43,7 +43,7 @@ internal object HttpClientFactory {
                     val message = apiError?.message ?: "HTTP ${response.status.value}"
                     val code = response.status.value
                     val detailedMessage = if (code == 400 && !apiError?.errors.isNullOrEmpty()) {
-                        val fieldErrors = apiError!!.errors!!.entries.joinToString("; ") { (field, messages) ->
+                        val fieldErrors = apiError.errors.entries.joinToString("; ") { (field, messages) ->
                             "$field: ${messages.joinToString(", ")}"
                         }
                         "$message: $fieldErrors"

@@ -23,6 +23,7 @@ internal fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
     whatsappVerified = whatsappVerified,
     createdAt = createdAt,
     nearbyUsers = nearbyUsers,
+    protectedFieldsUnlockAt = protectedFieldsUnlockAt,
     locationLat = location?.lat,
     locationLng = location?.lng,
     locationGeohash = location?.geohash,
@@ -45,6 +46,7 @@ internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
     migrated = migrated,
     whatsappVerified = whatsappVerified,
     createdAt = createdAt,
+    protectedFieldsUnlockAt = protectedFieldsUnlockAt,
     nearbyUsers = nearbyUsers,
     location = if (
         locationLat != null || locationLng != null ||
