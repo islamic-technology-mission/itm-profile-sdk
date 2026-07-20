@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     // ── Constants ─────────────────────────────────────────────────────────────
 
-    private val internalKey = "6bebaa8645a54b27b858d74cbf5a1aac9f56b4945d85aa2f7abf0885df540c5b"
+    private val internalKey = BuildConfig.INTERNAL_KEY
 
     // ── State ─────────────────────────────────────────────────────────────────
 
