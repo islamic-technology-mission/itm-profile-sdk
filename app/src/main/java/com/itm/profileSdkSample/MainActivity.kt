@@ -34,7 +34,8 @@ class MainActivity : AppCompatActivity() {
 
 
     private val profiles = listOf(
-        Profile(userId = "JEElOJEWEQerwvGCW1SqXdtEfP13", label = "Profile 1")
+        Profile(userId = "JEElOJEWEQerwvGCW1SqXdtEfP13", label = "Profile 1"),
+        Profile(userId = "SXyqhpje0XVdxchxMQLEcWeHhiz2", label = "Profile 1")
     )
 
 
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ISDKClient.configure(true, applicationContext)
+        ISDKClient.setup(true, applicationContext)
         setupButtons()
 
 
@@ -72,16 +73,12 @@ class MainActivity : AppCompatActivity() {
         activeObserver?.cancel()
         currentToken = null
         currentProfile = null
-        ISDKClient.reset()
+        ISDKClient.logout()
 
         showLoading("Generating token for ${profile.label}...")
 
-        // 1. Re-initialize SDK with selected userId
-        ISDKClient.initialize(
-            userId = profile.userId,
-            sandboxMode = true,
-            context = applicationContext
-        )
+        // 1. Set the SDK's current user to the selected profile
+        ISDKClient.initialize(userId = profile.userId)
 
         // 2. Generate token
         ISDKClient.generateToken(internalKey = internalKey) { tokenResult ->

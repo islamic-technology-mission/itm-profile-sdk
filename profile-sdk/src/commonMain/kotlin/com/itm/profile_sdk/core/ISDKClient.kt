@@ -23,21 +23,20 @@ object ISDKClient {
 
     /**
      * One-time app-level setup — builds the DB, HTTP client, and repository singleton.
-     * Call once, e.g. in Application.onCreate (Android) or app startup (iOS).
-     * Safe to call again — a no-op if already configured. To rebuild from scratch
-     * (e.g. sandboxMode changed, logout), call [reset] first.
+     * Call exactly once per process lifetime, e.g. in Application.onCreate (Android) or
+     * app startup (iOS). Safe to call again — a no-op if already set up.
      *
-     * Once configured, every SDK function that takes an explicit `userId` param
-     * (e.g. observeScreenTime(userId, ...), getCompleteProfileData(userId, ...)) works
-     * immediately — no per-user re-initialization needed.
+     * Does not touch the current user. Call [initialize] afterwards (once you have an
+     * authenticated userId) to start using the per-user convenience overloads
+     * (e.g. observeProfile(token, ...), generateToken(...)).
      *
      * @param sandboxMode true → sandbox API base URL, false → production API base URL. Defaults to true.
      * @param context     Android: Application context. iOS: omit or pass Unit.
      *
-     * Android: ISDKClient.configure(sandboxMode = true, context = applicationContext)
-     * iOS:     ISDKClient.configure(sandboxMode: true)
+     * Android: ISDKClient.setup(sandboxMode = true, context = applicationContext)
+     * iOS:     ISDKClient.setup(sandboxMode: true)
      */
-    fun configure(
+    fun setup(
         sandboxMode: Boolean = true,
         context: Any = Unit
     ) {
@@ -55,47 +54,52 @@ object ISDKClient {
     }
 
     /**
-     * Sets the "current" user for the convenience overloads that don't take an explicit
-     * userId (e.g. observeProfile(token, ...), generateToken(...)). Only needed if you use
-     * those; the explicit-userId overloads work off [configure] alone.
+     * Sets the "current" user, enabling the convenience overloads that don't take an
+     * explicit userId (e.g. observeProfile(token, ...), generateToken(...)). Only needed
+     * if you use those; the explicit-userId overloads work without calling this.
      *
-     * Also runs [configure] internally if it hasn't been called yet, so this remains a
-     * drop-in replacement for the old single-step initialize() call.
+     * Requires [setup] to have been called first (typically once in Application.onCreate).
      *
-     * @param userId      Authenticated user's UUID
-     * @param sandboxMode true → sandbox API base URL, false → production API base URL. Defaults to true.
-     * @param context     Android: Application context. iOS: omit or pass Unit.
+     * To switch to a different user, call [logout] first, then call [initialize] again
+     * with the new userId.
      *
-     * Android: ISDKClient.initialize(userId = "abc-123", sandboxMode = true, context = applicationContext)
-     * iOS:     ISDKClient.initialize(userId: "abc-123", sandboxMode: true)
+     * @param userId Authenticated user's UUID
+     *
+     * ISDKClient.initialize(userId = "abc-123")
      */
-    fun initialize(
-        userId: String,
-        sandboxMode: Boolean = true,
-        context: Any = Unit
-    ) {
+    fun initialize(userId: String) {
         require(userId.isNotBlank()) { "userId must not be blank." }
-
-        configure(sandboxMode, context)
-
-        // Clear cached token only when actually switching to a different user
-        if (SDKState.userId != null && SDKState.userId != userId) {
-            SDKState.tokenManager?.clear()
+        check(SDKState.repository != null) {
+            "ISDKClient not set up. Call ISDKClient.setup(...) once at app startup before ISDKClient.initialize(userId)."
         }
 
         SDKState.userId = userId
     }
 
     /**
+     * Clears the current user and cached token, leaving the DB/HTTP client/repository
+     * (set up by [setup]) intact. Call this before switching to a different user:
+     *
+     * ISDKClient.logout()
+     * ISDKClient.initialize(userId = "new-user-uuid")
+     *
+     * For a full teardown of the SDK (e.g. rebuilding after a sandbox/production
+     * change), use [reset] instead.
+     */
+    fun logout() {
+        SDKState.tokenManager?.clear()
+        SDKState.userId = null
+    }
+
+    /**
      * Fully tears down the SDK singleton — closes the DB connection, drops the repository,
      * HTTP client, token manager, and current user.
      *
-     * Call this on full logout / account switch when you want a completely clean slate.
-     * After calling [reset], the SDK is uninitialized again: the next [configure] or
-     * [initialize] call rebuilds everything from scratch.
+     * After calling [reset], the SDK is uninitialized again: the next [setup] call rebuilds
+     * everything from scratch, and [initialize] must be called again to set the current user.
      *
-     * Not needed for switching between users while staying logged in — use
-     * [initialize] with a new userId, or the explicit-userId function overloads, instead.
+     * Not needed just to switch users while staying logged in — use [logout] followed by
+     * [initialize] with the new userId instead.
      */
     fun reset() {
         SDKState.repository?.close()

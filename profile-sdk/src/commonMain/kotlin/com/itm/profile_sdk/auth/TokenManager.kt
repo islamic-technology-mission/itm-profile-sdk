@@ -50,7 +50,7 @@ internal class TokenManager(
 
     /**
      * Clears all cached token data.
-     * Called by ISDKClient.initialize() when switching users.
+     * Called by ISDKClient.logout() when switching users.
      */
     fun clear() {
         uid              = null
