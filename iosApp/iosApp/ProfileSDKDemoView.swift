@@ -32,7 +32,7 @@ struct ProfileSDKDemoView: View {
                             ProfileDetailView(profile: profile)
                         }
                         Button("Update Profile") { vm.updateProfile() }
-                            .buttonStyle(SDKButtonStyle(color: .indigo))
+                            .buttonStyle(SDKButtonStyle(color: .purple))
                             .disabled(profileIsNotLoaded)
 
                         if case .loading = vm.updateProfileState {
@@ -112,10 +112,10 @@ struct ProfileSelectorView: View {
                 Button(profiles[i].label) { onSelect(i) }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(i == selectedIndex ? Color.indigo : Color(.systemGray5))
+                    .background(i == selectedIndex ? Color.purple : Color(.systemGray5))
                     .foregroundColor(i == selectedIndex ? .white : .primary)
                     .cornerRadius(8)
-                    .fontWeight(i == selectedIndex ? .bold : .regular)
+//                    .fontWeight(i == selectedIndex ? .bold : .regular)
             }
         }
         .padding(.horizontal)
@@ -182,7 +182,7 @@ struct ProfileRow: View {
             Text(label)
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.indigo)
+                .foregroundColor(.purple)
                 .frame(width: 80, alignment: .leading)
             Text(value ?? "—")
                 .font(.caption)

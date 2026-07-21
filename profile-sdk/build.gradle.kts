@@ -1,5 +1,7 @@
 import java.util.Properties
 import kotlin.apply
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 group = "com.itm.profile_sdk"
 version = "1.0.1"
@@ -48,7 +50,8 @@ kotlin {
     // A step-by-step guide on how to include this library in an XCode
     // project can be found here:
     // https://developer.android.com/kotlin/multiplatform/migrate
-    var xcfName = "Profile_SDK"
+    var xcfName = "Islam360SDK"
+    val xcf = XCFramework("Islam360SDK")
     val syntheticPodsTbdDir = layout.buildDirectory
         .dir("cocoapods/synthetic/ios/build/EagerLinkingTBDs")
         .get()
@@ -59,6 +62,7 @@ kotlin {
         binaries.framework {
             baseName = xcfName
             linkerOpts("-F$syntheticPodsTbdDir/Debug-iphonesimulator")
+            xcf.add(this) // Add to XCFramework
         }
     }
 
@@ -66,6 +70,7 @@ kotlin {
         binaries.framework {
             baseName = xcfName
             linkerOpts("-F$syntheticPodsTbdDir/Debug-iphoneos")
+            xcf.add(this) // Add to XCFramework
         }
     }
 
@@ -73,19 +78,23 @@ kotlin {
         binaries.framework {
             baseName = xcfName
             linkerOpts("-F$syntheticPodsTbdDir/Debug-iphonesimulator")
+            xcf.add(this) // Add to XCFramework
         }
     }
 
     cocoapods {
-        version = "1.0"
-        summary = "Profile-SDK Kotlin Multiplatform SDK"
-        homepage = "https://theislam360.com"
-        ios.deploymentTarget = "15.0"
-        name = "Profile_SDK"
+        version = "1.0.0"
+        summary = "Islam360 Kotlin Multiplatform SDK"
+        homepage = "https://github.com/islamic-technology-mission/Islam360_CocoaPods_IOS_SDK.git"
+        ios.deploymentTarget = "14.0"
+        name = "Islam360SDK"
         framework {
-            baseName = "Profile_SDK"
+            baseName = "Islam360SDK"
             isStatic = true
         }
+        xcodeConfigurationToNativeBuildType["Debug"] = NativeBuildType.DEBUG
+        xcodeConfigurationToNativeBuildType["Release"] = NativeBuildType.RELEASE
+        xcodeConfigurationToNativeBuildType["Stagging"] = NativeBuildType.DEBUG
     }
 
     // Source set declarations.
