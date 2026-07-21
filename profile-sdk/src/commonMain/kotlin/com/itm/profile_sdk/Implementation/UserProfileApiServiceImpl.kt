@@ -21,10 +21,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
 internal class UserProfileApiServiceImpl(
-    private val client: HttpClient
+    private val client: HttpClient,
+    private val baseUrl: String
 ) : UserProfileApiService {
 
-    private fun url(path: String) = "${ApiConstants.BASE_URL}$path"
+    private fun url(path: String) = "$baseUrl$path"
 
     override suspend fun upsertProfile(
         token: String, userId: String, request: UpsertProfileRequest

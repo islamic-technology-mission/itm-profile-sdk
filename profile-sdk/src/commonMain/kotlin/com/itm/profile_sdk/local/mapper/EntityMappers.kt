@@ -9,10 +9,11 @@ import com.itm.profile_sdk.models.UserProfile
 // ─── UserProfile ──────────────────────────────────────────────────────────────
 
 internal fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
-    id = id ?: "",
+    id = id,
     name = name,
     email = email,
     phone = phone,
+    imageUrl = imageUrl,
     gender = gender,
     dob = dob,
     platform = platform,
@@ -22,10 +23,13 @@ internal fun UserProfile.toEntity(): UserProfileEntity = UserProfileEntity(
     whatsappVerified = whatsappVerified,
     createdAt = createdAt,
     nearbyUsers = nearbyUsers,
+    protectedFieldsUnlockAt = protectedFieldsUnlockAt,
     locationLat = location?.lat,
     locationLng = location?.lng,
     locationGeohash = location?.geohash,
-    locationUpdatedAt = location?.updatedAt
+    locationUpdatedAt = location?.updatedAt,
+    locationCity = location?.city,
+    locationCountry = location?.country
 )
 
 internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
@@ -33,6 +37,7 @@ internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
     name = name,
     email = email,
     phone = phone,
+    imageUrl = imageUrl,
     gender = gender,
     dob = dob,
     platform = platform,
@@ -41,13 +46,20 @@ internal fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
     migrated = migrated,
     whatsappVerified = whatsappVerified,
     createdAt = createdAt,
+    protectedFieldsUnlockAt = protectedFieldsUnlockAt,
     nearbyUsers = nearbyUsers,
-    location = if (locationLat != null || locationLng != null) {
+    location = if (
+        locationLat != null || locationLng != null ||
+        locationGeohash != null || locationUpdatedAt != null ||
+        locationCity != null || locationCountry != null
+    ) {
         UserLocation(
             lat = locationLat,
             lng = locationLng,
             geohash = locationGeohash,
-            updatedAt = locationUpdatedAt
+            updatedAt = locationUpdatedAt,
+            city = locationCity,
+            country = locationCountry
         )
     } else null
 )

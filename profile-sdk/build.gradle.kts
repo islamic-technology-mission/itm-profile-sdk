@@ -3,8 +3,8 @@ import kotlin.apply
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
-group = "com.itm.profile_sdk"
-version = "1.0.1"
+group = "com.itm.profilesdk"
+version = "1.0.9"
 
 plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)

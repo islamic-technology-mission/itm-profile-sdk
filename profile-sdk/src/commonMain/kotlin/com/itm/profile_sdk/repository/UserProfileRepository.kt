@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 
 internal interface UserProfileRepository {
     fun observeUserProfile(token: String, userId: String): Flow<UserProfile>
+    suspend fun getProfileData(token: String, userId: String): Result<UserProfileData>
     suspend fun upsertProfile(
         token: String,
         userId: String,
@@ -49,16 +50,18 @@ internal interface UserProfileRepository {
         limit: Int?
     ): Result<ProfileViewsData>
 
-    fun observeScreenTime(token: String, userId: String, days : Int): Flow<ScreenTimeProgress>
+    fun observeScreenTime(token: String, userId: String, days: Int): Flow<ScreenTimeProgress>
     suspend fun postScreenTime(
         token: String,
         userId: String,
-        days : Int,
+        days: Int,
         request: ScreenTimeRequest
     ): Result<Unit>
 
-    suspend fun refreshScreenTime(token: String, userId: String, days : Int): Result<Unit>
     suspend fun getNearbyUsers(token: String, lat: Double?, lng: Double?): Result<List<NearbyUser>>
+
+    /** Releases the underlying DB connection. Called by ISDKClient.reset(). */
+    fun close()
 }
 
 internal class UserProfileRepositoryImpl(
@@ -67,8 +70,8 @@ internal class UserProfileRepositoryImpl(
     private val externalScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : UserProfileRepository {
 
-    private val profileDao        = db.userProfileDao()
-    private val screenTimeDao     = db.screenTimeDao()
+    private val profileDao = db.userProfileDao()
+    private val screenTimeDao = db.screenTimeDao()
     private val screenTimeTargetDao = db.screenTimeTargetDao()
 
     // ── Profile ───────────────────────────────────────────────────────────────
@@ -124,6 +127,25 @@ internal class UserProfileRepositoryImpl(
         }
     }
 
+    /**
+     * Full profile snapshot (profile + subscription + screenTimeWeek + profileViews).
+     * Subscription and profileViews are always live (never cached), but the profile and
+     * screenTimeWeek portions are written to the local DB — so observeUserProfile picks up
+     * the fresh data on its next emission.
+     */
+    override suspend fun getProfileData(token: String, userId: String): Result<UserProfileData> {
+        return try {
+            val response = apiService.getProfile(token, userId)
+            if (response.status == "success") {
+                val data = response.data ?: return Result.Error("Profile data unavailable")
+                saveProfileToDb(userId, data)
+                Result.Success(data)
+            } else Result.Error("API error: ${response.status}")
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "Failed to fetch profile data", e)
+        }
+    }
+
     // ── Subscription ──────────────────────────────────────────────────────────
 
     override suspend fun getSubscription(token: String, userId: String): Result<Subscription> {
@@ -167,14 +189,14 @@ internal class UserProfileRepositoryImpl(
         return screenTimeDao
             .observeScreenTime(userId)
             .mapNotNull { entities ->
-                val entries        = entities.map { it.toDomain() }
-                val targetMinutes  = screenTimeTargetDao.getTarget(userId)?.dailyTargetMinutes ?: 15
+                val entries = entities.map { it.toDomain() }
+                val targetMinutes = screenTimeTargetDao.getTarget(userId)?.dailyTargetMinutes ?: 15
                 calculateProgress(entries, targetMinutes)
             }
     }
 
     override suspend fun postScreenTime(
-        token: String, userId: String, days : Int, request: ScreenTimeRequest
+        token: String, userId: String, days: Int, request: ScreenTimeRequest
     ): Result<Unit> {
         return try {
             apiService.postScreenTime(token, userId, request)
@@ -184,7 +206,7 @@ internal class UserProfileRepositoryImpl(
         }
     }
 
-    override suspend fun refreshScreenTime(token: String, userId: String, days : Int): Result<Unit> {
+    private suspend fun refreshScreenTime(token: String, userId: String, days: Int): Result<Unit> {
         return try {
             val response = apiService.getScreenTime(token, userId, days)
             if (response.status == "success") {
@@ -214,20 +236,26 @@ internal class UserProfileRepositoryImpl(
         }
     }
 
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    override fun close() {
+        db.close()
+    }
+
     // ── Private Helpers ───────────────────────────────────────────────────────
 
     private fun calculateProgress(
         entries: List<ScreenTimeEntry>,
         targetMinutes: Int
     ): ScreenTimeProgress {
-        val today   = getCurrentDate()
-        val allDates = entries.mapNotNull { it.date }
+        val today = getCurrentDate()
+        entries.mapNotNull { it.date }
 
-        val todayMinutes   = entries.filter { it.date == today }.sumOf { it.minutes ?: 0 }
-        val weeklyMinutes  = entries.filter { isWithinDays(it.date, 7) }.sumOf { it.minutes ?: 0 }
+        val todayMinutes = entries.filter { it.date == today }.sumOf { it.minutes ?: 0 }
+        val weeklyMinutes = entries.filter { isWithinDays(it.date, 7) }.sumOf { it.minutes ?: 0 }
         val monthlyMinutes = entries.filter { isWithinDays(it.date, 30) }.sumOf { it.minutes ?: 0 }
 
-        val weeklyTarget  = targetMinutes * 7
+        val weeklyTarget = targetMinutes * 7
         val monthlyTarget = targetMinutes * 30
 
         return ScreenTimeProgress(
@@ -265,6 +293,7 @@ internal class UserProfileRepositoryImpl(
             userId = userId,
             name = request.name,
             phone = request.phone,
+            imageUrl = request.imageUrl,
             gender = request.gender,
             dob = request.dob,
             visibility = request.visibility,

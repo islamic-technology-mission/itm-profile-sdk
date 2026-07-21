@@ -17,7 +17,7 @@ import com.itm.profile_sdk.local.entity.UserProfileEntity
         ScreenTimeEntity::class,
         ScreenTimeTargetEntity::class
     ],
-    version = 2
+    version = 5
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

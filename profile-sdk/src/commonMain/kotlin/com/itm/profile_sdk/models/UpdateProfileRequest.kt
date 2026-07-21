@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class UpdateProfileRequest(
     val name: String? = null,
     val phone: String? = null,
+    val imageUrl: String? = null,
     val gender: String? = null,
     val dob: String? = null,
     val visibility: String? = null,

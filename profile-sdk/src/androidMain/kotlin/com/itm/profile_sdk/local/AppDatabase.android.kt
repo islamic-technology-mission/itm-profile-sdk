@@ -6,12 +6,13 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 
 actual fun buildDatabase(context: Any): AppDatabase {
     require(context is Context) {
-        "On Android, pass Application context to ISDKClient.initialize()"
+        "On Android, pass Application context to ISDKClient.setup()"
     }
     return Room.databaseBuilder<AppDatabase>(
         context = context.applicationContext,
         name = context.getDatabasePath(DB_NAME).absolutePath
     )
         .setDriver(BundledSQLiteDriver())
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
         .build()
 }

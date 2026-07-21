@@ -7,5 +7,7 @@ data class UserLocation(
     val lat: Double? = null,
     val lng: Double? = null,
     val geohash: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    val city: String? = null,
+    val country: String? = null
 )

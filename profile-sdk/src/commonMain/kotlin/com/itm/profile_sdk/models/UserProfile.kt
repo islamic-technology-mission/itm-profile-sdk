@@ -4,18 +4,23 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserProfile(
-    val id: String? = null,
-    val name: String? = null,
+    val id: String = "",
+    val platform: String? = null,
     val email: String? = null,
+    val migrated: Boolean? = false,
+    val umrahOptIn: Boolean? = false,
     val phone: String? = null,
+    val imageUrl: String? = null,
     val gender: String? = null,
     val dob: String? = null,
-    val platform: String? = null,
-    val visibility: String? = null,
     val location: UserLocation? = null,
-    val umrahOptIn: Boolean? = null,
-    val migrated: Boolean? = null,
-    val whatsappVerified: Boolean? = null,
+    val whatsappVerified: Boolean? = false,
     val createdAt: String? = null,
-    val nearbyUsers: Int? = null
-)
+    val name: String? = null,
+    val visibility: String? = null,
+    val updatedAt: String? = null,
+    val protectedFieldsUnlockAt: String? = null,
+    val nearbyUsers: Int? = 0
+) {
+    fun isPublic(): Boolean  = visibility.equals("public", ignoreCase = true)
+}

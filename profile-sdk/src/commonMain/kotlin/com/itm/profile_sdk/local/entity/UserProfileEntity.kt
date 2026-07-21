@@ -10,6 +10,7 @@ internal data class UserProfileEntity(
     val name: String? = null,
     val email: String? = null,
     val phone: String? = null,
+    val imageUrl: String? = null,
     val gender: String? = null,
     val dob: String? = null,
     val platform: String? = null,
@@ -18,9 +19,12 @@ internal data class UserProfileEntity(
     val migrated: Boolean? = null,
     val whatsappVerified: Boolean? = null,
     val createdAt: String? = null,
+    val protectedFieldsUnlockAt: String? = null,
     val nearbyUsers: Int? = null,
     val locationLat: Double? = null,
     val locationLng: Double? = null,
     val locationGeohash: String? = null,
-    val locationUpdatedAt: String? = null
+    val locationUpdatedAt: String? = null,
+    val locationCity: String? = null,
+    val locationCountry: String? = null
 )

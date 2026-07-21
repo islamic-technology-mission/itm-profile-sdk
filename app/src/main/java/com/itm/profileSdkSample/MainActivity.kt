@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     // ── Constants ─────────────────────────────────────────────────────────────
 
-    private val internalKey = "6bebaa8645a54b27b858d74cbf5a1aac9f56b4945d85aa2f7abf0885df540c5b"
+    private val internalKey = BuildConfig.INTERNAL_KEY
 
     // ── State ─────────────────────────────────────────────────────────────────
 
@@ -34,10 +34,8 @@ class MainActivity : AppCompatActivity() {
 
 
     private val profiles = listOf(
-        Profile(userId = "mMCb2xH89eUWqnJPOkV0WfGf2XO2", label = "Profile 1"),
-        Profile(userId = "TbyvkxSKuBSNSRUdwv9uDfhbCN12", label = "Profile 2"),
-        Profile(userId = "xPVwfiBkHSX6qBqnufSUssJdDWI2", label = "Profile 3"),
-        Profile(userId = "wFpRlxosKPXKzjjDqwXpXVicoLc2", label = "Profile 4"),
+        Profile(userId = "JEElOJEWEQerwvGCW1SqXdtEfP13", label = "Profile 1"),
+        Profile(userId = "SXyqhpje0XVdxchxMQLEcWeHhiz2", label = "Profile 1")
     )
 
 
@@ -47,6 +45,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        ISDKClient.setup(true, applicationContext)
         setupButtons()
 
 
@@ -74,14 +73,12 @@ class MainActivity : AppCompatActivity() {
         activeObserver?.cancel()
         currentToken = null
         currentProfile = null
+        ISDKClient.logout()
 
         showLoading("Generating token for ${profile.label}...")
 
-        // 1. Re-initialize SDK with selected userId
-        ISDKClient.initialize(
-            userId = profile.userId,
-            context = applicationContext
-        )
+        // 1. Set the SDK's current user to the selected profile
+        ISDKClient.initialize(userId = profile.userId)
 
         // 2. Generate token
         ISDKClient.generateToken(internalKey = internalKey) { tokenResult ->
@@ -125,7 +122,6 @@ class MainActivity : AppCompatActivity() {
 
         ISDKClient.postScreenTime(
             token = token,
-            7,
             request = ScreenTimeRequest(date = today, seconds = 60)
         ) { result ->
             when (result) {
@@ -158,6 +154,7 @@ class MainActivity : AppCompatActivity() {
                             sb.appendLine("${index + 1}. ${viewer.name ?: "Unknown"}")
                             sb.appendLine("   Viewed ${viewer.viewCount ?: 0}x")
                             sb.appendLine("   Last: ${viewer.lastViewedAt ?: "—"}")
+                            sb.appendLine("   Country: ${viewer.country ?: "—"}")
                             if (index < (data.items?.size ?: (0 - 1))) sb.appendLine()
                         }
                     }
@@ -187,11 +184,17 @@ class MainActivity : AppCompatActivity() {
             "${profile.name} (Updated)"
         }
 
+        if (profile.dob?.equals("1994-09-04") == true) {
+            profile.dob?.replace(" 1994-09-04", "1994-09-03")
+        } else {
+            "${profile.dob} 1994-09-04"
+        }
+
         showLoading("Updating profile...")
 
         ISDKClient.updateProfile(
             token = token,
-            request = UpdateProfileRequest(name = newName)
+            request = UpdateProfileRequest(name = newName, dob = "19289/292/292")
         ) { result ->
             when (result) {
                 is Result.Success -> showToast("✅ Profile updated!")
@@ -281,6 +284,9 @@ class MainActivity : AppCompatActivity() {
             setRow(binding.rowDob, "DOB", profile.dob ?: "—")
             setRow(binding.rowNearby, "Nearby", "${profile.nearbyUsers ?: 0} users")
             setRow(binding.rowJoined, "Joined", profile.createdAt ?: "—")
+            setRow(binding.rowCountry, "Country", profile.location?.country ?: "—")
+            setRow(binding.rowCity, "City", profile.location?.city ?: "—")
+            setRow(binding.rowBlocked, "City", profile.protectedFieldsUnlockAt ?: "—")
             setRow(
                 binding.rowLocation, "Location",
                 profile.location?.let { "${it.lat}, ${it.lng}" } ?: "—"
