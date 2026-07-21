@@ -77,7 +77,8 @@ class MainActivity : AppCompatActivity() {
 
         showLoading("Generating token for ${profile.label}...")
 
-        // 1. Set the SDK's current user to the selected profile
+        // 1. Re-set up the SDK (logout tears it down), then set the current user
+        ISDKClient.setup(true, applicationContext)
         ISDKClient.initialize(userId = profile.userId)
 
         // 2. Generate token

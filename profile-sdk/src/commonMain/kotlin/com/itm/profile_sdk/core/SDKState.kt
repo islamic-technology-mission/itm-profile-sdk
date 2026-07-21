@@ -10,6 +10,7 @@ internal object SDKState {
     var userId: String? = null
     var repository: UserProfileRepository? = null
     var tokenManager: TokenManager? = null
+    var appContext: Any? = null
     val scope = CoroutineScope(Dispatchers.IO)  // ← add this
 
     fun requireUserId(): String =

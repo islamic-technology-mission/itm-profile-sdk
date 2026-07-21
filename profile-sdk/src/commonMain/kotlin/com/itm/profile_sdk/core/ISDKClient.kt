@@ -26,9 +26,10 @@ object ISDKClient {
      * Call exactly once per process lifetime, e.g. in Application.onCreate (Android) or
      * app startup (iOS). Safe to call again — a no-op if already set up.
      *
-     * Does not touch the current user. Call [initialize] afterwards (once you have an
-     * authenticated userId) to start using the per-user convenience overloads
-     * (e.g. observeProfile(token, ...), generateToken(...)).
+     * If a userId was previously set via [initialize] and hasn't been cleared by [logout],
+     * it is persisted across process restarts — this call automatically restores it, so
+     * the per-user convenience overloads (e.g. observeProfile(token, ...),
+     * generateToken(...)) work immediately without calling [initialize] again.
      *
      * @param sandboxMode true → sandbox API base URL, false → production API base URL. Defaults to true.
      * @param context     Android: Application context. iOS: omit or pass Unit.
@@ -40,6 +41,8 @@ object ISDKClient {
         sandboxMode: Boolean = true,
         context: Any = Unit
     ) {
+        SDKState.appContext = context
+
         if (SDKState.repository != null) return
 
         val baseUrl =
@@ -51,6 +54,12 @@ object ISDKClient {
 
         SDKState.repository = UserProfileRepositoryImpl(apiService, db)
         if (SDKState.tokenManager == null) SDKState.tokenManager = TokenManager()
+
+        // Restore a previously persisted user (survives process death) so callers
+        // don't have to call initialize(userId) again on every app launch.
+        if (SDKState.userId == null) {
+            SDKState.userId = readPersistedUserId(context)
+        }
     }
 
     /**
@@ -59,6 +68,8 @@ object ISDKClient {
      * if you use those; the explicit-userId overloads work without calling this.
      *
      * Requires [setup] to have been called first (typically once in Application.onCreate).
+     * The userId is persisted, so it survives process restarts until [logout] is called —
+     * [setup] restores it automatically on the next launch.
      *
      * To switch to a different user, call [logout] first, then call [initialize] again
      * with the new userId.
@@ -74,39 +85,31 @@ object ISDKClient {
         }
 
         SDKState.userId = userId
-    }
-
-    /**
-     * Clears the current user and cached token, leaving the DB/HTTP client/repository
-     * (set up by [setup]) intact. Call this before switching to a different user:
-     *
-     * ISDKClient.logout()
-     * ISDKClient.initialize(userId = "new-user-uuid")
-     *
-     * For a full teardown of the SDK (e.g. rebuilding after a sandbox/production
-     * change), use [reset] instead.
-     */
-    fun logout() {
-        SDKState.tokenManager?.clear()
-        SDKState.userId = null
+        SDKState.appContext?.let { persistUserId(it, userId) }
     }
 
     /**
      * Fully tears down the SDK singleton — closes the DB connection, drops the repository,
-     * HTTP client, token manager, and current user.
+     * HTTP client, token manager, current user, and the persisted userId.
      *
-     * After calling [reset], the SDK is uninitialized again: the next [setup] call rebuilds
-     * everything from scratch, and [initialize] must be called again to set the current user.
+     * Call this on logout, or before switching to a different user:
      *
-     * Not needed just to switch users while staying logged in — use [logout] followed by
-     * [initialize] with the new userId instead.
+     * ISDKClient.logout()
+     * ISDKClient.setup(sandboxMode = true, context = applicationContext)
+     * ISDKClient.initialize(userId = "new-user-uuid")
+     *
+     * After [logout], the SDK is uninitialized again: the next [setup] call rebuilds
+     * everything from scratch, and [initialize] must be called again to set the current
+     * user — [setup] will not auto-restore anyone since the persisted value was cleared.
      */
-    fun reset() {
+    fun logout() {
         SDKState.repository?.close()
         SDKState.repository = null
         SDKState.tokenManager?.clear()
         SDKState.tokenManager = null
+        SDKState.appContext?.let { persistUserId(it, null) }
         SDKState.userId = null
+        SDKState.appContext = null
     }
 
     /**

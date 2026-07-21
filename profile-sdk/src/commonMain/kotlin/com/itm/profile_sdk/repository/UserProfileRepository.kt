@@ -60,7 +60,7 @@ internal interface UserProfileRepository {
 
     suspend fun getNearbyUsers(token: String, lat: Double?, lng: Double?): Result<List<NearbyUser>>
 
-    /** Releases the underlying DB connection. Called by ISDKClient.reset(). */
+    /** Releases the underlying DB connection. Called by ISDKClient.logout(). */
     fun close()
 }
 

@@ -1,0 +1,89 @@
+<svg viewBox="0 0 800 520" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+
+  <!-- Background -->
+  <rect width="800" height="520" fill="#F8FAFC" rx="12"/>
+
+  <!-- Title -->
+  <text x="400" y="38" text-anchor="middle" font-size="18" font-weight="bold" fill="#1E3A5F">Profile SDK — Architecture</text>
+
+  <!-- ── Layer 1: Public API ─────────────────────────────────────────── -->
+  <rect x="200" y="60" width="400" height="54" rx="8" fill="#7C3AED" stroke="#5B21B6" stroke-width="1.5"/>
+  <text x="400" y="81" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">ISDKClient</text>
+  <text x="400" y="99" text-anchor="middle" font-size="11" fill="#EDE9FE">Public singleton · All SDK functions · Callback API</text>
+
+  <!-- arrow 1→2 -->
+  <line x1="400" y1="114" x2="400" y2="138" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ── Layer 2: Business Logic ─────────────────────────────────────── -->
+  <rect x="200" y="140" width="400" height="54" rx="8" fill="#7C3AED" stroke="#5B21B6" stroke-width="1.5"/>
+  <text x="400" y="161" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">UserProfileRepository</text>
+  <text x="400" y="179" text-anchor="middle" font-size="11" fill="#EDE9FE">Caching · Optimistic updates · Flow emission</text>
+
+  <!-- arrow 2→3a and 2→3b -->
+  <line x1="310" y1="194" x2="230" y2="222" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="490" y1="194" x2="570" y2="222" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ── Layer 3a: Auth / State ──────────────────────────────────────── -->
+  <rect x="60" y="224" width="260" height="64" rx="8" fill="#0F766E" stroke="#0D9488" stroke-width="1.5"/>
+  <text x="190" y="248" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">TokenManager / SDKState</text>
+  <text x="190" y="264" text-anchor="middle" font-size="11" fill="#CCFBF1">Token cache · Auto-renew 60s before expiry</text>
+  <text x="190" y="278" text-anchor="middle" font-size="11" fill="#CCFBF1">userId · coroutine scope</text>
+
+  <!-- ── Layer 3b: Network ───────────────────────────────────────────── -->
+  <rect x="480" y="224" width="260" height="64" rx="8" fill="#DC2626" stroke="#B91C1C" stroke-width="1.5"/>
+  <text x="610" y="248" text-anchor="middle" font-size="13" font-weight="bold" fill="#FFFFFF">ApiServiceImpl</text>
+  <text x="610" y="264" text-anchor="middle" font-size="11" fill="#FEE2E2">Ktor HTTP · JSON serialization</text>
+  <text x="610" y="278" text-anchor="middle" font-size="11" fill="#FEE2E2">OkHttp (Android) · Darwin (iOS)</text>
+
+  <!-- arrows 3b→4a and 3b→4b -->
+  <line x1="610" y1="288" x2="610" y2="318" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- arrow 3a→4c (local DB) -->
+  <line x1="190" y1="288" x2="190" y2="358" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ── Layer 4a: REST API ──────────────────────────────────────────── -->
+  <rect x="460" y="320" width="300" height="44" rx="8" fill="#1E40AF" stroke="#1D4ED8" stroke-width="1.5"/>
+  <text x="610" y="339" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">REST API</text>
+  <text x="610" y="355" text-anchor="middle" font-size="10" fill="#BFDBFE">sandbox.theislam360.com  /  api.theislam360.com</text>
+
+  <!-- ── Layer 4b: Local DB ─────────────────────────────────────────── -->
+  <rect x="60" y="360" width="305" height="44" rx="8" fill="#0F766E" stroke="#0D9488" stroke-width="1.5"/>
+  <text x="212" y="379" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Room Database  (app_database.db)</text>
+  <text x="212" y="395" text-anchor="middle" font-size="10" fill="#CCFBF1">SQLite v4 · Android internal storage · iOS NSDocumentDirectory</text>
+
+  <!-- ── Layer 5: DAOs ───────────────────────────────────────────────── -->
+  <line x1="120" y1="404" x2="100" y2="436" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="212" y1="404" x2="212" y2="436" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="305" y1="404" x2="325" y2="436" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="40" y="438" width="140" height="38" rx="6" fill="#115E59" stroke="#0D9488" stroke-width="1"/>
+  <text x="110" y="458" text-anchor="middle" font-size="11" font-weight="bold" fill="#CCFBF1">UserProfileDao</text>
+  <text x="110" y="471" text-anchor="middle" font-size="10" fill="#CCFBF1">user_profile</text>
+
+  <rect x="142" y="438" width="140" height="38" rx="6" fill="#115E59" stroke="#0D9488" stroke-width="1"/>
+  <text x="212" y="458" text-anchor="middle" font-size="11" font-weight="bold" fill="#CCFBF1">ScreenTimeDao</text>
+  <text x="212" y="471" text-anchor="middle" font-size="10" fill="#CCFBF1">screen_time</text>
+
+  <rect x="244" y="438" width="140" height="38" rx="6" fill="#115E59" stroke="#0D9488" stroke-width="1"/>
+  <text x="314" y="458" text-anchor="middle" font-size="11" font-weight="bold" fill="#CCFBF1">TargetDao</text>
+  <text x="314" y="471" text-anchor="middle" font-size="10" fill="#CCFBF1">screen_time_target</text>
+
+  <!-- ── Legend ──────────────────────────────────────────────────────── -->
+  <rect x="460" y="400" width="300" height="100" rx="8" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="477" y="420" font-size="11" font-weight="bold" fill="#374151">Legend</text>
+  <rect x="477" y="428" width="14" height="14" rx="3" fill="#7C3AED"/>
+  <text x="497" y="440" font-size="10" fill="#374151">Core SDK logic</text>
+  <rect x="477" y="448" width="14" height="14" rx="3" fill="#0F766E"/>
+  <text x="497" y="460" font-size="10" fill="#374151">Local storage / Auth</text>
+  <rect x="477" y="468" width="14" height="14" rx="3" fill="#DC2626"/>
+  <text x="497" y="480" font-size="10" fill="#374151">Network layer</text>
+  <rect x="477" y="488" width="14" height="14" rx="3" fill="#1E40AF"/>
+  <text x="497" y="500" font-size="10" fill="#374151">Remote API</text>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+</svg>

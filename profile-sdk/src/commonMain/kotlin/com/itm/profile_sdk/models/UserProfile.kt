@@ -22,5 +22,5 @@ data class UserProfile(
     val protectedFieldsUnlockAt: String? = null,
     val nearbyUsers: Int? = 0
 ) {
-    fun isPublic(): Boolean  = visibility.equals("public", ignoreCase = true)
+    fun isPublic(): Boolean  = visibility.equals("public", ignoreCase = true) || visibility == null
 }
