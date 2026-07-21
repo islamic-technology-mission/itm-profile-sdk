@@ -2,52 +2,52 @@
 //  Bridges KMP ISDKClient callbacks to Swift closures (no async/await).
 
 import Foundation
-import Profile_SDK
-
-struct AppProfileAsync {
-    let label: String
-    let userId: String
-}
-
-enum SDKErrorAsync: Error {
-    case notInitialized
-    case message(String)
-}
+import Islam360SDK
 
 final class ProfileSDKServiceAsync {
 
     static let internalKey = "6bebaa8645a54b27b858d74cbf5a1aac9f56b4945aa2f7ab85df540c5b"
 
-    static let profiles: [AppProfileAsync] = [
-        AppProfileAsync(label: "P1", userId: "mMCb2xH89eUWqnJPOkV0WfGf2XO"),
-        AppProfileAsync(label: "P2", userId: "TbyvkxSKuBSNSRUdwv9uDfhbN12"),
-        AppProfileAsync(label: "P3", userId: "xPVwfiBkHSX6qBqnufSUssJdDI2"),
-        AppProfileAsync(label: "P4", userId: "wFpRlxosKPXKzjjDqwXpXVicoL2"),
-    ]
-
     private var profileCancellable: Cancellable?
     private var screenTimeCancellable: Cancellable?
 
-    // MARK: - Initialize + Token
+    // MARK: - Lifecycle
 
-    func initialize(userId: String) {
-        ISDKClient.shared.initialize(userId: userId, context: NSObject())
+    /// Must be called once at app startup.
+    func setup(sandboxMode: Bool = true) {
+        ISDKClient.shared.setup(sandboxMode: sandboxMode, context: NSObject())
     }
+
+    /// Sets the current user. Requires setup() to have been called once.
+    func initialize(userId: String) {
+        ISDKClient.shared.initialize(userId: userId)
+    }
+
+    func logout() {
+        cancelAll()
+        ISDKClient.shared.logout()
+    }
+
+    func reset() {
+        cancelAll()
+        ISDKClient.shared.reset()
+    }
+
+    // MARK: - Token
 
     func generateToken(completion: @escaping (String?, Error?) -> Void) {
         ISDKClient.shared.generateToken(internalKey: Self.internalKey) { result in
             if let success = result as? ResultSuccess<NSString> {
                 completion(success.data! as String, nil)
             } else if let error = result as? ResultError {
-                completion(nil, SDKErrorAsync.message(error.message))
+                completion(nil, SDKError.message(error.message))
             } else {
-                completion(nil, SDKErrorAsync.message("Unknown token error"))
+                completion(nil, SDKError.message("Unknown token error"))
             }
         }
     }
 
     // MARK: - Observe Profile
-    // Reverted from AsyncStream to closures
 
     func observeProfile(
         token: String,
@@ -61,7 +61,7 @@ final class ProfileSDKServiceAsync {
                 onEach(profile)
             },
             onError: { throwable in
-                onError(SDKErrorAsync.message(throwable.message ?? "Profile observe error"))
+                onError(SDKError.message(throwable.message ?? "Profile observe error"))
             }
         )
     }
@@ -93,31 +93,13 @@ final class ProfileSDKServiceAsync {
             if let success = result as? ResultSuccess<UserProfile> {
                 completion(success.data, nil)
             } else if let error = result as? ResultError {
-                completion(nil, SDKErrorAsync.message(error.message))
+                completion(nil, SDKError.message(error.message))
             } else {
-                completion(nil, SDKErrorAsync.message("Unknown update error"))
-            }
-        }
-    }
-
-    // MARK: - Screen Time
-
-    func observeScreenTime(
-        token: String,
-        days: Int32 = 7,
-        onEach: @escaping ([ScreenTimeEntry]) -> Void,
-        onError: @escaping (Error) -> Void,
-        onComplete: @escaping () -> Void
-    ) {
-        screenTimeCancellable?.cancel()
-        screenTimeCancellable = ISDKClient.shared.observeScreenTime(
-            token: token,
-            days: days,
             onEach: { entries in
                 onEach(entries as! [ScreenTimeEntry])
             },
             onError: { throwable in
-                onError(SDKErrorAsync.message(throwable.message ?? "Screen time observe error"))
+                onError(SDKError.message(throwable.message ?? "Screen time observe error"))
             },
             onComplete: {
                 onComplete()
@@ -129,6 +111,24 @@ final class ProfileSDKServiceAsync {
         screenTimeCancellable?.cancel()
         screenTimeCancellable = nil
     }
+    completion(nil, SDKError.message("Unknown update error"))
+}
+}
+}
+
+// MARK: - Screen Time
+
+func observeScreenTime(
+    token: String,
+    days: Int32 = 7,
+    onEach: @escaping ([ScreenTimeEntry]) -> Void,
+    onError: @escaping (Error) -> Void,
+    onComplete: @escaping () -> Void
+) {
+    screenTimeCancellable?.cancel()
+    screenTimeCancellable = ISDKClient.shared.observeScreenTime(
+        token: token,
+        days: days,
 
     func postScreenTime(token: String, completion: @escaping (Error?) -> Void) {
         let formatter = DateFormatter()
@@ -136,13 +136,14 @@ final class ProfileSDKServiceAsync {
         let today = formatter.string(from: Date())
         let request = ScreenTimeRequest(date: today, seconds: 60)
 
-        ISDKClient.shared.postScreenTime(token: token, days: 7, request: request) { result in
+        // Updated to match new signature: token, request, days
+        ISDKClient.shared.postScreenTime(token: token, request: request, days: 7) { result in
             if result is ResultSuccess<AnyObject> {
                 completion(nil)
             } else if let error = result as? ResultError {
-                completion(SDKErrorAsync.message(error.message))
+                completion(SDKError.message(error.message))
             } else {
-                completion(SDKErrorAsync.message("Unknown post screen time error"))
+                completion(SDKError.message("Unknown post screen time error"))
             }
         }
     }
@@ -154,9 +155,9 @@ final class ProfileSDKServiceAsync {
             if let success = result as? ResultSuccess<ProfileViewsData> {
                 completion(success.data, nil)
             } else if let error = result as? ResultError {
-                completion(nil, SDKErrorAsync.message(error.message))
+                completion(nil, SDKError.message(error.message))
             } else {
-                completion(nil, SDKErrorAsync.message("Unknown profile views error"))
+                completion(nil, SDKError.message("Unknown profile views error"))
             }
         }
     }
@@ -169,9 +170,45 @@ final class ProfileSDKServiceAsync {
                 let users = (success.data as? [NearbyUser]) ?? []
                 completion(users, nil)
             } else if let error = result as? ResultError {
-                completion(nil, SDKErrorAsync.message(error.message))
+                completion(nil, SDKError.message(error.message))
             } else {
-                completion(nil, SDKErrorAsync.message("Unknown nearby users error"))
+                completion(nil, SDKError.message("Unknown nearby users error"))
+            }
+        }
+    }
+
+    // MARK: - Complete Profile Data (New API)
+
+    func getCompleteProfileData(token: String, completion: @escaping (UserProfileData?, Error?) -> Void) {
+        ISDKClient.shared.getCompleteProfileData(token: token) { result in
+            if let success = result as? ResultSuccess<UserProfileData> {
+                completion(success.data, nil)
+            } else if let error = result as? ResultError {
+                completion(nil, SDKError.message(error.message))
+            } else {
+                completion(nil, SDKError.message("Unknown complete profile data error"))
+            }
+        }
+    }
+
+    // MARK: - Upsert Profile
+    func upsertProfile(token: String, request: UpsertProfileRequest, completion: @escaping (UserProfile?, Error?) -> Void) {
+        ISDKClient.shared.upsertProfile(token: token, request: request) { result in
+            if let success = result as? ResultSuccess<UserProfile> {
+                completion(success.data, nil)
+            } else if let error = result as? ResultError {
+                completion(nil, SDKError.message(error.message))
+            }
+        }
+    }
+
+    // MARK: - Standalone Subscription
+    func getSubscription(token: String, completion: @escaping (Subscription?, Error?) -> Void) {
+        ISDKClient.shared.getSubscription(token: token) { result in
+            if let success = result as? ResultSuccess<Subscription> {
+                completion(success.data, nil)
+            } else if let error = result as? ResultError {
+                completion(nil, SDKError.message(error.message))
             }
         }
     }
@@ -181,5 +218,82 @@ final class ProfileSDKServiceAsync {
     func cancelAll() {
         stopObservingProfile()
         stopObservingScreenTime()
+    }
+}
+
+// MARK: - Explicit UserID Overloads
+extension ProfileSDKServiceAsync {
+
+    func observeProfile(
+        userId: String,
+        token: String,
+        onEach: @escaping (UserProfile) -> Void,
+        onError: @escaping (Error) -> Void
+    ) {
+        profileCancellable?.cancel()
+        profileCancellable = ISDKClient.shared.observeProfile(
+            userId: userId,
+            token: token,
+            onEach: { profile in
+                onEach(profile)
+            },
+            onError: { throwable in
+                onError(SDKError.message(throwable.message ?? "Profile observe error"))
+            }
+        )
+    }
+
+    func updateProfile(
+        userId: String,
+        token: String,
+        request: UpdateProfileRequest,
+        completion: @escaping (UserProfile?, Error?) -> Void
+    ) {
+        ISDKClient.shared.updateProfile(userId: userId, token: token, request: request) { result in
+            if let success = result as? ResultSuccess<UserProfile> {
+                completion(success.data, nil)
+            } else if let error = result as? ResultError {
+                completion(nil, SDKError.message(error.message))
+            }
+        }
+    }
+
+    func getCompleteProfileData(
+        userId: String,
+        token: String,
+        completion: @escaping (UserProfileData?, Error?) -> Void
+    ) {
+        ISDKClient.shared.getCompleteProfileData(userId: userId, token: token) { result in
+            if let success = result as? ResultSuccess<UserProfileData> {
+                completion(success.data, nil)
+            } else if let error = result as? ResultError {
+                completion(nil, SDKError.message(error.message))
+            }
+        }
+    }
+
+    func observeScreenTime(
+        userId: String,
+        token: String,
+        days: Int32 = 7,
+        onEach: @escaping ([ScreenTimeEntry]) -> Void,
+        onError: @escaping (Error) -> Void,
+        onComplete: @escaping () -> Void
+    ) {
+        screenTimeCancellable?.cancel()
+        screenTimeCancellable = ISDKClient.shared.observeScreenTime(
+            userId: userId,
+            token: token,
+            days: days,
+            onEach: { entries in
+                onEach(entries as! [ScreenTimeEntry])
+            },
+            onError: { throwable in
+                onError(SDKError.message(throwable.message ?? "Screen time observe error"))
+            },
+            onComplete: {
+                onComplete()
+            }
+        )
     }
 }
