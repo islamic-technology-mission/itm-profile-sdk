@@ -89,20 +89,36 @@ object ISDKClient {
     }
 
     /**
-     * Fully tears down the SDK singleton — closes the DB connection, drops the repository,
-     * HTTP client, token manager, current user, and the persisted userId.
-     *
-     * Call this on logout, or before switching to a different user:
+     * Clears the current user, its persisted copy, and the cached token, leaving the
+     * DB/HTTP client/repository (set up by [setup]) intact. Call this before switching
+     * to a different user:
      *
      * ISDKClient.logout()
-     * ISDKClient.setup(sandboxMode = true, context = applicationContext)
      * ISDKClient.initialize(userId = "new-user-uuid")
      *
-     * After [logout], the SDK is uninitialized again: the next [setup] call rebuilds
-     * everything from scratch, and [initialize] must be called again to set the current
-     * user — [setup] will not auto-restore anyone since the persisted value was cleared.
+     * After [logout], [setup] will no longer auto-restore a userId until [initialize]
+     * is called again.
+     *
+     * For a full teardown of the SDK (e.g. rebuilding after a sandbox/production
+     * change), use [reset] instead.
      */
     fun logout() {
+        SDKState.tokenManager?.clear()
+        SDKState.appContext?.let { persistUserId(it, null) }
+        SDKState.userId = null
+    }
+
+    /**
+     * Fully tears down the SDK singleton — closes the DB connection, drops the repository,
+     * HTTP client, token manager, and current user (including the persisted copy).
+     *
+     * After calling [reset], the SDK is uninitialized again: the next [setup] call rebuilds
+     * everything from scratch, and [initialize] must be called again to set the current user.
+     *
+     * Not needed just to switch users while staying logged in — use [logout] followed by
+     * [initialize] with the new userId instead.
+     */
+    fun reset() {
         SDKState.repository?.close()
         SDKState.repository = null
         SDKState.tokenManager?.clear()
