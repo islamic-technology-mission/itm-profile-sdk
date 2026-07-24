@@ -10,6 +10,7 @@ data class UpsertProfileRequest(
     val gender: String? = null,
     val dob: String? = null,
     val platform: String? = null,
+    val pushToken: String? = null,
     val visibility: String? = null,
     val location: UserLocation? = null,
     val umrahOptIn: Boolean? = null
